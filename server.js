@@ -4,7 +4,7 @@ var morgan = require('morgan');                // log requests to the console (e
 var bodyParser = require('body-parser');       // pull information from HTML POST (express4)
 
 var app = express();                        // create our app w/ express
-var port = process.env.port || 8888;
+var port = process.env.PORT || 8888;
 var dbUri = process.env.MONGODB_URI || "mongodb://localhost/TestDB";
 
 mongoose.connect(dbUri, { useNewUrlParser: true, useUnifiedTopology: true }).then(() => {
@@ -20,5 +20,5 @@ app.use(bodyParser.urlencoded({ 'extended': 'true' }));
 app.use(bodyParser.json());
 
 app.listen(port, () => {
-	console.log("App running on port " + port);
+	console.log(`App running on port ${port}`);
 });
