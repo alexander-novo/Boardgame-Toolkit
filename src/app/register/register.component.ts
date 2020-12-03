@@ -1,16 +1,15 @@
 import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormControl, Validators, AsyncValidator, AbstractControl, ValidationErrors } from '@angular/forms';
-import { Observable } from 'rxjs';
+import { FormGroup, FormControl, Validators, AsyncValidator, AbstractControl, ValidationErrors, NG_ASYNC_VALIDATORS, FormGroupDirective, NgForm } from '@angular/forms';
+import { ErrorStateMatcher } from '@angular/material/core';
 
-export class UniqueUsernameValidator implements AsyncValidator {
-	validate(control: AbstractControl): Promise<ValidationErrors> | Observable<ValidationErrors> {
-		throw new Error('Method not implemented.');
+import { RegisterService, uniqueUsernameValidator } from '../register.service';
+
+class CrossFieldErrorMatcher implements ErrorStateMatcher {
+	constructor(private error: string) { }
+
+	isErrorState(control: FormControl, form: FormGroupDirective | NgForm): boolean {
+		return control.dirty && (control.invalid || (form.invalid && form.hasError(this.error)));
 	}
-
-	registerOnValidatorChange?(fn: () => void): void {
-		throw new Error('Method not implemented.');
-	}
-
 }
 
 @Component({
@@ -19,7 +18,6 @@ export class UniqueUsernameValidator implements AsyncValidator {
 	styleUrls: ['./register.component.scss']
 })
 export class RegisterComponent implements OnInit {
-
 	registerForm = new FormGroup({
 		username: new FormControl('', [Validators.required, Validators.minLength(4)]),
 		name: new FormControl('', [Validators.required]),
@@ -28,11 +26,13 @@ export class RegisterComponent implements OnInit {
 		date: new FormGroup({
 			birth: new FormControl('', [Validators.required]),
 		}),
-	});
+	}, { asyncValidators: uniqueUsernameValidator(this.registerService) });
 
+	usernameErrorMatcher = new CrossFieldErrorMatcher('userNotUnique');
+	emailErrorMatcher = new CrossFieldErrorMatcher('emailNotUnique');
 	hidePW = true;
 
-	constructor() { }
+	constructor(private registerService: RegisterService) { }
 
 	ngOnInit(): void {
 	}

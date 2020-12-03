@@ -9,12 +9,17 @@
 			<mat-card-content>
 				<mat-form-field class="example-full-width">
 					<mat-label>Username</mat-label>
-					<input matInput required placeholder="Username" formControlName="username">
+					<input matInput required placeholder="Username" formControlName="username"
+						[errorStateMatcher]="usernameErrorMatcher">
 					<mat-error *ngIf="username.hasError('required')">
 						Username is required.
 					</mat-error>
 					<mat-error *ngIf="username.hasError('minlength') && !username.hasError('required')">
 						Username must be at least 4 characters long.
+					</mat-error>
+					<mat-error
+						*ngIf="registerForm.hasError('userNotUnique') && !username.hasError('minlength') && !username.hasError('required')">
+						Username already taken.
 					</mat-error>
 				</mat-form-field>
 
@@ -28,12 +33,17 @@
 
 				<mat-form-field class="example-full-width">
 					<mat-label>Email Address</mat-label>
-					<input matInput required placeholder="Email Address" formControlName="email">
+					<input matInput required placeholder="Email Address" formControlName="email"
+						[errorStateMatcher]="emailErrorMatcher">
 					<mat-error *ngIf="email.hasError('required')">
 						Email address is required.
 					</mat-error>
 					<mat-error *ngIf="email.hasError('email') && !email.hasError('required')">
 						Not a valid email address.
+					</mat-error>
+					<mat-error
+						*ngIf="registerForm.hasError('emailNotUnique') && !email.hasError('email') && !email.hasError('required')">
+						Email address already in use.
 					</mat-error>
 				</mat-form-field>
 
