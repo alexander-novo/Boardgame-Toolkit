@@ -8,7 +8,6 @@ import { RegisterService } from './register.service';
 })
 export class AppComponent implements OnInit {
 	title = 'Boardgame Toolkit';
-	username = '';
 	tried = false;
 
 	constructor(private registerService: RegisterService) { }
@@ -18,13 +17,7 @@ export class AppComponent implements OnInit {
 	}
 
 	getUserName(): string {
-		if (this.registerService.loggedIn() && !this.tried) {
-			this.registerService.me().subscribe(me => this.username = me.username);
-			this.tried = true;
-		}
-
-
-		return this.username;
+		return this.registerService.getUsername();
 	}
 
 	logout() {

@@ -18,7 +18,7 @@
 				<mat-form-field class="example-full-width">
 					<mat-label>Password</mat-label>
 					<input matInput required [type]="hidePW ? 'password' : 'text'" placeholder="Password"
-						formControlName="password">
+						formControlName="password" (keydown.enter)="$event.preventDefault()">
 					<button mat-icon-button matSuffix (click)="hidePW = !hidePW" [attr.aria-label]="'Hide password'"
 						[attr.aria-pressed]="hidePW">
 						<mat-icon>{{hidePW ? 'visibility_off' : 'visibility'}}</mat-icon>

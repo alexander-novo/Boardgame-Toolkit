@@ -12,7 +12,15 @@ import { CookieService } from 'ngx-cookie-service';
 })
 export class RegisterService {
 
-	constructor(private http: HttpClient, private jwtService: JwtHelperService, private cookieService: CookieService) { }
+	username = '';
+	usernameDirty = false;
+
+	constructor(private http: HttpClient, private jwtService: JwtHelperService, private cookieService: CookieService) {
+		if (this.loggedIn()) {
+			this.usernameDirty = true;
+			this.getUsername();
+		}
+	}
 
 	checkForUniqueUsername(user: string, email: string): Observable<any> {
 		const params = new HttpParams().set("user", user).set("email", email);
@@ -24,7 +32,9 @@ export class RegisterService {
 	}
 
 	login(creds: { username: string, password: string }) {
-		return this.http.post<any>('/api/login', creds);
+		let re = this.http.post<any>('/api/login', creds);
+		re.subscribe(() => this.usernameDirty = true);
+		return re;
 	}
 
 	me() {
@@ -46,6 +56,15 @@ export class RegisterService {
 	logout(): void {
 		localStorage.removeItem('jwt');
 		this.cookieService.delete('jwt');
+	}
+
+	getUsername(): string {
+		if (this.loggedIn() && this.usernameDirty) {
+			this.usernameDirty = false;
+			this.me().subscribe(me => this.username = me.username);
+		}
+
+		return this.username;
 	}
 }
 

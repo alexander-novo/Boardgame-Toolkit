@@ -6,8 +6,8 @@
 		<a mat-button mat-raised-button routerLink="register" routerLinkActive="active">Register</a>
 	</span>
 	<span class="nav-tool-items" *ngIf="loggedIn()">
-		<button mat-button>{{username || getUserName()}}</button>
-		<a mat-button mat-raised-button routerLink="" routerLinkActive="active" (click)="logout()">Log out</a>
+		<button mat-button>{{getUserName()}}</button>
+		<a mat-button mat-raised-button routerLink="/login" routerLinkActive="active" (click)="logout()">Log out</a>
 	</span>
 </mat-toolbar>
 
