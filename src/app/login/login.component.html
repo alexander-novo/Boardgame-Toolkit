@@ -5,25 +5,37 @@
 			<mat-card-title>Log in</mat-card-title>
 		</mat-card-header>
 
-		<form class="example-form">
+		<form class="example-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
 			<mat-card-content>
 				<mat-form-field class="example-full-width">
 					<mat-label>Username</mat-label>
-					<input matInput placeholder="Username">
+					<input matInput placeholder="Username" formControlName="username">
+					<mat-error *ngIf="username.hasError('required')">
+						Username is required.
+					</mat-error>
 				</mat-form-field>
 
 				<mat-form-field class="example-full-width">
 					<mat-label>Password</mat-label>
-					<input matInput placeholder="Password">
+					<input matInput required [type]="hidePW ? 'password' : 'text'" placeholder="Password"
+						formControlName="password">
+					<button mat-icon-button matSuffix (click)="hidePW = !hidePW" [attr.aria-label]="'Hide password'"
+						[attr.aria-pressed]="hidePW">
+						<mat-icon>{{hidePW ? 'visibility_off' : 'visibility'}}</mat-icon>
+					</button>
+					<mat-error *ngIf="password.hasError('required')">
+						Password is required.
+					</mat-error>
 				</mat-form-field>
 			</mat-card-content>
-			<button mat-stroked-button color="accent" class="btn-block">Log in</button>
+			<button mat-stroked-button color="accent" class="btn-block" type="submit" [disabled]="!loginForm.valid">Log
+				in</button>
 			<mat-card-actions>
-				<a routerLink="/forgot">
-					<button mat-button color="accent">Forgot Password</button>
+				<a routerLink="/forgot" mat-button color="accent">
+					Forgot Password
 				</a>
-				<a routerLink="/register">
-					<button mat-button color="accent">Register</button>
+				<a routerLink="/register" mat-button color="accent">
+					Register
 				</a>
 			</mat-card-actions>
 

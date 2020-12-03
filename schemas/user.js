@@ -18,7 +18,7 @@ const UserSchema = new Schema({
 		creation: { type: Date, required: true, default: Date.now },
 		birth: { type: Date, required: false },
 	},
-
+	projects: [{ type: Schema.Types.ObjectId, ref: 'Project' }],
 });
 
 // Hash password entries

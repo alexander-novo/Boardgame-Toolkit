@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormControl, Validators, AsyncValidator, AbstractControl, ValidationErrors, NG_ASYNC_VALIDATORS, FormGroupDirective, NgForm } from '@angular/forms';
 import { ErrorStateMatcher } from '@angular/material/core';
+import { Router } from '@angular/router';
 
 import { RegisterService, uniqueUsernameValidator } from '../register.service';
 
@@ -8,7 +9,7 @@ class CrossFieldErrorMatcher implements ErrorStateMatcher {
 	constructor(private error: string) { }
 
 	isErrorState(control: FormControl, form: FormGroupDirective | NgForm): boolean {
-		return control.dirty && (control.invalid || (form.invalid && form.hasError(this.error)));
+		return control.invalid || control.dirty && form.invalid && form.hasError(this.error);
 	}
 }
 
@@ -32,7 +33,7 @@ export class RegisterComponent implements OnInit {
 	emailErrorMatcher = new CrossFieldErrorMatcher('emailNotUnique');
 	hidePW = true;
 
-	constructor(private registerService: RegisterService) { }
+	constructor(private registerService: RegisterService, private router: Router) { }
 
 	ngOnInit(): void {
 	}
@@ -40,9 +41,9 @@ export class RegisterComponent implements OnInit {
 	onSubmit(): void {
 		console.log(this.registerForm.value);
 		this.registerService.registerNewUser(this.registerForm.value).subscribe(
-			x => console.log("Got a thing back: " + x),
-			err => { console.error("Error in registering:"); console.log(err); },
-			() => console.log("Succesfully registered?")
+			x => localStorage.setItem('jwt', x.token),
+			err => console.log(err),
+			() => this.router.navigateByUrl('/')
 		);
 	}
 

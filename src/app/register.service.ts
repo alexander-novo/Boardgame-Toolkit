@@ -14,12 +14,27 @@ export class RegisterService {
 
 	checkForUniqueUsername(user: string, email: string): Observable<any> {
 		const params = new HttpParams().set("user", user).set("email", email);
-		return this.http.get("api/check-unique-user", { params });
+		return this.http.get("api/users/unique", { params });
 	}
 
 	registerNewUser(user) {
+		return this.http.post<any>("api/register", user);
+	}
 
-		return this.http.post("api/register", user);
+	login(creds: { username: string, password: string }) {
+		return this.http.post<any>('/api/login', creds);
+	}
+
+	me() {
+		return this.http.get<any>('/api/users/me');
+	}
+
+	createNewProject(name: string) {
+		return this.http.put<any>('/api/projects/new', { name });
+	}
+
+	getMyProjects() {
+		return this.http.get<any[]>('/api/projects/mine');
 	}
 }
 

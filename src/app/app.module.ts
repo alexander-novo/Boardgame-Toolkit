@@ -3,22 +3,28 @@ import { AngularMaterialModule } from './angular-material.module';
 import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { HttpClientModule } from '@angular/common/http';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+
+import { JwtModule } from "@auth0/angular-jwt";
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { LoginComponent } from './login/login.component';
 import { RegisterComponent } from './register/register.component';
 import { ForgotComponent } from './forgot/forgot.component';
-import { HttpClientModule } from '@angular/common/http';
+import { HomeComponent } from './home/home.component';
+import { NewProjectComponent } from './new-project/new-project.component';
 
 @NgModule({
 	declarations: [
 		AppComponent,
 		LoginComponent,
 		RegisterComponent,
-		ForgotComponent
+		ForgotComponent,
+		HomeComponent,
+		NewProjectComponent
 	],
 	imports: [
 		BrowserModule,
@@ -28,7 +34,12 @@ import { HttpClientModule } from '@angular/common/http';
 		FlexLayoutModule,
 		FormsModule,
 		ReactiveFormsModule,
-		HttpClientModule
+		HttpClientModule,
+		JwtModule.forRoot({
+			config: {
+				tokenGetter: () => localStorage.getItem("jwt"),
+			}
+		})
 	],
 	providers: [],
 	bootstrap: [AppComponent],

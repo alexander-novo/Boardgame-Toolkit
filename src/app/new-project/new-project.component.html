@@ -1,0 +1,26 @@
+<div class="login-wrapper" fxLayout="row" fxLayoutAlign="center center">
+	<mat-card class="box">
+		<mat-card-header>
+			<mat-card-title>New Project</mat-card-title>
+		</mat-card-header>
+
+		<form class="example-form" [formGroup]="newProjForm" (ngSubmit)="onSubmit()">
+
+			<mat-card-content>
+				<mat-form-field class="example-full-width">
+					<mat-label>Project Name</mat-label>
+					<input matInput required placeholder="projName" formControlName="name">
+					<mat-error *ngIf="projName.hasError('required')">
+						Project name is required.
+					</mat-error>
+					<mat-error *ngIf="projName.hasError('minlength') && !projName.hasError('required')">
+						Project name must be at least 4 characters long.
+					</mat-error>
+				</mat-form-field>
+				<button mat-stroked-button color="accent" class="btn-block" type="submit"
+					[disabled]="!newProjForm.valid">Create</button>
+			</mat-card-content>
+
+		</form>
+	</mat-card>
+</div>
