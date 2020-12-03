@@ -4,13 +4,15 @@ import { FormGroup, ValidationErrors, AsyncValidatorFn } from '@angular/forms';
 
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { JwtHelperService } from '@auth0/angular-jwt';
+import { CookieService } from 'ngx-cookie-service';
 
 @Injectable({
 	providedIn: 'root'
 })
 export class RegisterService {
 
-	constructor(private http: HttpClient) { }
+	constructor(private http: HttpClient, private jwtService: JwtHelperService, private cookieService: CookieService) { }
 
 	checkForUniqueUsername(user: string, email: string): Observable<any> {
 		const params = new HttpParams().set("user", user).set("email", email);
@@ -35,6 +37,15 @@ export class RegisterService {
 
 	getMyProjects() {
 		return this.http.get<any[]>('/api/projects/mine');
+	}
+
+	loggedIn(): boolean {
+		return !this.jwtService.isTokenExpired();
+	}
+
+	logout(): void {
+		localStorage.removeItem('jwt');
+		this.cookieService.delete('jwt');
 	}
 }
 

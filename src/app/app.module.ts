@@ -16,6 +16,7 @@ import { RegisterComponent } from './register/register.component';
 import { ForgotComponent } from './forgot/forgot.component';
 import { HomeComponent } from './home/home.component';
 import { NewProjectComponent } from './new-project/new-project.component';
+import { CookieService } from 'ngx-cookie-service';
 
 @NgModule({
 	declarations: [
@@ -41,7 +42,7 @@ import { NewProjectComponent } from './new-project/new-project.component';
 			}
 		})
 	],
-	providers: [],
+	providers: [CookieService],
 	bootstrap: [AppComponent],
 	schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })

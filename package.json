@@ -32,6 +32,7 @@
 		"jsonwebtoken": "^8.5.1",
 		"mongoose": "^5.11.1",
 		"morgan": "^1.10.0",
+		"ngx-cookie-service": "^11.0.2",
 		"passport": "^0.4.1",
 		"passport-local": "^1.0.0",
 		"rxjs": "~6.6.0",

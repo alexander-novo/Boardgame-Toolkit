@@ -1,9 +1,13 @@
 <!-- Toolbar -->
 <mat-toolbar color="primary" class="app-header">
 	<div>Boardgame Toolkit</div>
-	<span class="nav-tool-items">
+	<span class="nav-tool-items" *ngIf="!loggedIn()">
 		<a mat-button routerLink="login" routerLinkActive="active">Log in</a>
 		<a mat-button mat-raised-button routerLink="register" routerLinkActive="active">Register</a>
+	</span>
+	<span class="nav-tool-items" *ngIf="loggedIn()">
+		<button mat-button>{{username || getUserName()}}</button>
+		<a mat-button mat-raised-button routerLink="" routerLinkActive="active" (click)="logout()">Log out</a>
 	</span>
 </mat-toolbar>
 
