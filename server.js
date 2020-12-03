@@ -48,6 +48,8 @@ mongoose.connect(dbUri, { useNewUrlParser: true, useUnifiedTopology: true, useCr
 			await user.save();
 
 			const token = jwt.sign({ id: user.id }, jwtSecret, { expiresIn: "7d", algorithm: "HS512" });
+
+			res.cookie('jwt', token);
 			res.status(200).json({ token });
 		} catch (err) {
 			console.log(err);

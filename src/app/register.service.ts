@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { FormGroup, ValidationErrors, AsyncValidatorFn } from '@angular/forms';
 
-import { Observable } from 'rxjs';
+import { ObjectUnsubscribedError, Observable, Subject } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { CookieService } from 'ngx-cookie-service';
@@ -28,13 +28,21 @@ export class RegisterService {
 	}
 
 	registerNewUser(user) {
-		return this.http.post<any>("api/register", user);
+		let obs = this.http.post<any>("api/register", user);
+		let sub = new Subject<any>();
+
+		obs.subscribe(sub);
+		sub.subscribe(() => this.usernameDirty = true);
+		return sub;
 	}
 
 	login(creds: { username: string, password: string }) {
-		let re = this.http.post<any>('/api/login', creds);
-		re.subscribe(() => this.usernameDirty = true);
-		return re;
+		let obs = this.http.post<any>('/api/login', creds);
+		let sub = new Subject<any>();
+
+		obs.subscribe(sub);
+		sub.subscribe(() => this.usernameDirty = true);
+		return sub;
 	}
 
 	me() {
@@ -50,7 +58,7 @@ export class RegisterService {
 	}
 
 	loggedIn(): boolean {
-		return !this.jwtService.isTokenExpired();
+		return !this.jwtService.isTokenExpired() && this.cookieService.check('jwt');
 	}
 
 	logout(): void {
