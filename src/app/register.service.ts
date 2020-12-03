@@ -16,6 +16,11 @@ export class RegisterService {
 		const params = new HttpParams().set("user", user).set("email", email);
 		return this.http.get("api/check-unique-user", { params });
 	}
+
+	registerNewUser(user) {
+
+		return this.http.post("api/register", user);
+	}
 }
 
 export const uniqueUsernameValidator = (service: RegisterService): AsyncValidatorFn => {
