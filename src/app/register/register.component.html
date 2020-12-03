@@ -4,32 +4,69 @@
 			<mat-card-title>Register</mat-card-title>
 		</mat-card-header>
 
-		<form class="example-form">
+		<form class="example-form" [formGroup]="registerForm" (ngSubmit)="onSubmit()">
 
 			<mat-card-content>
 				<mat-form-field class="example-full-width">
 					<mat-label>Username</mat-label>
-					<input matInput placeholder="Username">
+					<input matInput required placeholder="Username" formControlName="username">
+					<mat-error *ngIf="username.hasError('required')">
+						Username is required.
+					</mat-error>
+					<mat-error *ngIf="username.hasError('minlength') && !username.hasError('required')">
+						Username must be at least 4 characters long.
+					</mat-error>
+				</mat-form-field>
+
+				<mat-form-field class="example-full-width">
+					<mat-label>Full Name</mat-label>
+					<input matInput required placeholder="Full Name" formControlName="name">
+					<mat-error *ngIf="name.hasError('required')">
+						Full name is required.
+					</mat-error>
 				</mat-form-field>
 
 				<mat-form-field class="example-full-width">
 					<mat-label>Email Address</mat-label>
-					<input matInput placeholder="Email Address">
+					<input matInput required placeholder="Email Address" formControlName="email">
+					<mat-error *ngIf="email.hasError('required')">
+						Email address is required.
+					</mat-error>
+					<mat-error *ngIf="email.hasError('email') && !email.hasError('required')">
+						Not a valid email address.
+					</mat-error>
 				</mat-form-field>
 
 				<mat-form-field class="example-full-width">
 					<mat-label>Password</mat-label>
-					<input matInput placeholder="Password">
+					<input matInput required [type]="hidePW ? 'password' : 'text'" placeholder="Password"
+						formControlName="password">
+					<button mat-icon-button matSuffix (click)="hidePW = !hidePW" [attr.aria-label]="'Hide password'"
+						[attr.aria-pressed]="hidePW">
+						<mat-icon>{{hidePW ? 'visibility_off' : 'visibility'}}</mat-icon>
+					</button>
+					<mat-error *ngIf="password.hasError('required')">
+						Password is required.
+					</mat-error>
+					<mat-error *ngIf="password.hasError('minlength') && !password.hasError('required')">
+						Passwords must be at least 8 characters.
+					</mat-error>
 				</mat-form-field>
 
-				<mat-form-field class="example-full-width">
-					<mat-label>Birth Date</mat-label>
-					<input matInput type="date">
-				</mat-form-field>
+				<div formGroupName="date">
+					<mat-form-field class="example-full-width">
+						<mat-label>Birth Date</mat-label>
+						<input matInput required type="date" formControlName="birth">
+						<mat-error *ngIf="birthdate.hasError('required')">
+							Birth date is required.
+						</mat-error>
+					</mat-form-field>
+				</div>
 
 			</mat-card-content>
 
-			<button mat-stroked-button color="accent" class="btn-block" type="submit">Register</button>
+			<button mat-stroked-button color="accent" class="btn-block" type="submit"
+				[disabled]="!registerForm.valid">Register</button>
 
 		</form>
 	</mat-card>
