@@ -1,15 +1,16 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
+import { LoginComponent } from './login/login.component';
+import { RegisterComponent } from './register/register.component';
 
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-
-const routes: Routes = [];
+const routes: Routes = [
+	{ path: '', pathMatch: 'full', redirectTo: 'login' },
+	{ path: 'login', component: LoginComponent },
+	{ path: 'register', component: RegisterComponent }
+];
 
 @NgModule({
 	imports: [RouterModule.forRoot(routes)],
-	exports: [RouterModule, MatCardModule, MatButtonModule, MatFormFieldModule, MatInputModule]
+	exports: [RouterModule]
 })
 export class AppRoutingModule { }
