@@ -42,7 +42,21 @@ mongoose.connect(dbUri, { useNewUrlParser: true, useUnifiedTopology: true, useCr
 			console.log(err);
 			res.status(500).json(err);
 		}
-	})
+	});
+
+	app.get("/api/check-unique-user", async (req, res) => {
+		console.log("Received unique request:");
+
+		try {
+			let userUnique = !await User.exists({ username: req.query.user });
+			let emailUnique = !await User.exists({ email: req.query.email });
+
+			console.log(req.query);
+			res.status(200).json({ emailUnique, userUnique });
+		} catch (err) {
+			res.status(500).json(err);
+		}
+	});
 }, (err) => {
 	console.log("Error connecting to database:");
 	console.error(err);
