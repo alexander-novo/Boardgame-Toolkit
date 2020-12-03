@@ -39,6 +39,11 @@ export class RegisterComponent implements OnInit {
 
 	onSubmit(): void {
 		console.log(this.registerForm.value);
+		this.registerService.registerNewUser(this.registerForm.value).subscribe(
+			x => console.log("Got a thing back: " + x),
+			err => { console.error("Error in registering:"); console.log(err); },
+			() => console.log("Succesfully registered?")
+		);
 	}
 
 	get username() { return this.registerForm.get("username"); }

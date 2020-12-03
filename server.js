@@ -37,7 +37,7 @@ mongoose.connect(dbUri, { useNewUrlParser: true, useUnifiedTopology: true, useCr
 		try {
 			await user.save();
 
-			res.sendStatus(200);
+			res.status(200).json({ auth: "todo" });
 		} catch (err) {
 			console.log(err);
 			res.status(500).json(err);
@@ -57,6 +57,11 @@ mongoose.connect(dbUri, { useNewUrlParser: true, useUnifiedTopology: true, useCr
 			res.status(500).json(err);
 		}
 	});
+
+	app.all('/*', function (req, res, next) {
+		// Just send the index.html for other files to support HTML5Mode
+		res.sendFile('/dist/boardgame-toolkit/index.html', { root: __dirname });
+	});
 }, (err) => {
 	console.log("Error connecting to database:");
 	console.error(err);
@@ -66,6 +71,7 @@ app.use(express.static(__dirname + "/dist/boardgame-toolkit"));
 app.use(morgan('dev'));
 app.use(bodyParser.urlencoded({ 'extended': 'true' }));
 app.use(bodyParser.json());
+
 
 app.listen(port, () => {
 	console.log(`App running on port ${port}`);
