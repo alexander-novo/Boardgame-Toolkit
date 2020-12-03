@@ -64,6 +64,7 @@ export class RegisterService {
 	logout(): void {
 		localStorage.removeItem('jwt');
 		this.cookieService.delete('jwt');
+		this.username = '';
 	}
 
 	getUsername(): string {
