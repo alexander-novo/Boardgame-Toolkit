@@ -46,5 +46,17 @@ testem.log
 Thumbs.db
 
 password.txt
-/.vs/slnx.sqlite
-/.vs
+
+@ IDE - VS
+.vs/slnx.sqlite
+.vs
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Visual Studio 2017 auto generated files
+Generated\ Files/
