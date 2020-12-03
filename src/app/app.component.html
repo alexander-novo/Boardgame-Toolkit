@@ -1,10 +1,12 @@
 <!-- Toolbar -->
 <mat-toolbar color="primary" class="app-header">
 	<div>Boardgame Toolkit</div>
+	<!-- If we aren't logged in, the navbar should encourage us to log in or register -->
 	<span class="nav-tool-items" *ngIf="!loggedIn()">
 		<a mat-button routerLink="login" routerLinkActive="active">Log in</a>
 		<a mat-button mat-raised-button routerLink="register" routerLinkActive="active">Register</a>
 	</span>
+	<!-- If we *are* logged in, then display our username and let us log out -->
 	<span class="nav-tool-items" *ngIf="loggedIn()">
 		<button mat-button>{{getUserName()}}</button>
 		<a mat-button mat-raised-button routerLink="/login" routerLinkActive="active" (click)="logout()">Log out</a>

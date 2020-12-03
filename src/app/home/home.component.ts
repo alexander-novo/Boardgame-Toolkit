@@ -13,12 +13,12 @@ export class HomeComponent implements OnInit {
 	constructor(private registerService: RegisterService) { }
 
 	ngOnInit(): void {
+		// Get list of projects
 		this.registerService.getMyProjects().subscribe(
 			proj => {
 				for (var project of proj) {
 					this.projects.push({ name: project.name, modified: project.modified })
 				}
-				console.log(this.projects);
 			}
 		)
 	}

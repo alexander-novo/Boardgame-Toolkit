@@ -34,20 +34,6 @@ UserSchema.pre("save", async function (next) {
 	}
 
 	return next();
-
-	// Generate a salt
-	// bcrypt.genSalt(SALT_WORK_FACTOR, (err, salt) => {
-	// 	if (err) return next(err);
-
-	// 	// Hash using salt
-	// 	bcrypt.hash(this.password, salt, (err, hash) => {
-	// 		if (err) return next(err);
-
-	// 		// Replace plaintext password with salted + hashed version
-	// 		this.password = hash;
-	// 		next();
-	// 	});
-	// });
 });
 
 UserSchema.methods.comparePassword = async function comparePassword(candidatePassword) {

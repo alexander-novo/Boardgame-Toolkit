@@ -8,13 +8,10 @@ import { RegisterService } from './register.service';
 })
 export class AppComponent implements OnInit {
 	title = 'Boardgame Toolkit';
-	tried = false;
 
 	constructor(private registerService: RegisterService) { }
 
-	ngOnInit(): void {
-		this.getUserName();
-	}
+	ngOnInit(): void { }
 
 	getUserName(): string {
 		return this.registerService.getUsername();
