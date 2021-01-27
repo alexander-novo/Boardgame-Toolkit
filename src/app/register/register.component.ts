@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormControl, Validators, AsyncValidator, AbstractControl, ValidationErrors, NG_ASYNC_VALIDATORS, FormGroupDirective, NgForm } from '@angular/forms';
+import { FormGroup, FormControl, Validators, FormGroupDirective, NgForm } from '@angular/forms';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { Router } from '@angular/router';
 
@@ -28,8 +28,9 @@ export class RegisterComponent implements OnInit {
 		email: new FormControl('', [Validators.required, Validators.email]),
 		password: new FormControl('', [Validators.required, Validators.minLength(8)]),
 		date: new FormGroup({
-			birth: new FormControl('', [Validators.required]),
+			birth: new FormControl(null, [Validators.required]),
 		}),
+		captcha: new FormControl(null, [Validators.required]),
 		// Add the custom unique username/email validator from RegisterService,
 		// To make certain the username/email isn't taken before submitting.
 	}, { asyncValidators: uniqueUsernameValidator(this.registerService) });

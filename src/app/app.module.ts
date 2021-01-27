@@ -5,6 +5,7 @@ import { FlexLayoutModule } from '@angular/flex-layout';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { RecaptchaModule, RecaptchaFormsModule, RECAPTCHA_SETTINGS, RecaptchaSettings } from "ng-recaptcha";
 
 import { JwtModule } from "@auth0/angular-jwt";
 
@@ -36,13 +37,21 @@ import { CookieService } from 'ngx-cookie-service';
 		FormsModule,
 		ReactiveFormsModule,
 		HttpClientModule,
+		RecaptchaModule,
+		RecaptchaFormsModule,
 		JwtModule.forRoot({
 			config: {
 				tokenGetter: () => localStorage.getItem("jwt"),
 			}
 		})
 	],
-	providers: [CookieService],
+	providers: [
+		CookieService,
+		{
+			provide: RECAPTCHA_SETTINGS,
+			useValue: { siteKey: "6LfMqD0aAAAAAF-0krIJHlcKKWIWFiH0LyiTXj0M" } as RecaptchaSettings,
+		},
+	],
 	bootstrap: [AppComponent],
 	schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })

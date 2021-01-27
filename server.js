@@ -1,18 +1,23 @@
-var express = require('express');
-var mongoose = require('mongoose');            // mongoose for mongodb
-var morgan = require('morgan');                // log requests to the console (express4)
-var bodyParser = require('body-parser');       // pull information from HTML POST (express4)
-var cookieParser = require('cookie-parser');
-var ejwt = require('express-jwt');
-var jwt = require('jsonwebtoken');
+const express = require('express');
+const mongoose = require('mongoose');            // mongoose for mongodb
+const morgan = require('morgan');                // log requests to the console (express4)
+const bodyParser = require('body-parser');       // pull information from HTML POST (express4)
+const cookieParser = require('cookie-parser');
+const ejwt = require('express-jwt');
+const jwt = require('jsonwebtoken');
+const axios = require('axios').default;
+const fs = require('fs');
 
 const User = require("./schemas/user");
 const Project = require("./schemas/project");
 
-var app = express();                        // create our app w/ express
-var port = process.env.PORT || 8888;
-var dbUri = process.env.MONGODB_URI || "mongodb://localhost/TestDB";
-var jwtSecret = process.env.JWT_SECRET || "keyboard cat";
+const app = express();                        // create our app w/ express
+const port = process.env.PORT || 8888;
+const dbUri = process.env.MONGODB_URI || "mongodb://localhost/TestDB";
+const jwtSecret = process.env.JWT_SECRET || "keyboard cat";
+const captchaSecret = process.env.RECAPTCHA_SECRET || JSON.parse(fs.readFileSync("captcha_secret.json"));
+
+if (!captchaSecret) { console.error("Google ReCaptcha secret not found. Please add to captcha_secret.json"); process.exit(1); }
 
 // Since we're using cookie-parser middleware, cookies should be added to req.cookies.
 // In /api/login and /api/register, we attached the auth token as the 'jwt' cookie.
@@ -33,11 +38,13 @@ mongoose.connect(dbUri, { useNewUrlParser: true, useUnifiedTopology: true, useCr
 				user = await User.findOne({ username: req.body.username });
 			} catch (err) {
 				res.status(500).json(err);
+				return;
 			}
 
 			// Don't differentiate between incorrect password and user can't be found.
 			if (!user || !await user.comparePassword(req.body.password)) {
 				res.status(401).json("Access denied");
+				return;
 			}
 
 			// If auth passed, generate a jwt with the user's id for quickly finding in db later
@@ -58,6 +65,23 @@ mongoose.connect(dbUri, { useNewUrlParser: true, useUnifiedTopology: true, useCr
 	app.post("/api/register", async (req, res) => {
 		// TODO: input validation
 
+		if (!req.body || !req.body.captcha) {
+			res.status(500).json({ error: "Please fill out a captcha." });
+			return;
+		}
+
+		// Validate ReCaptcha
+		var captchaResponse = await axios.post(
+			`https://www.google.com/recaptcha/api/siteverify?secret=${captchaSecret}&response=${req.body.captcha}&remoteip=${req.ip}`
+		);
+
+		if (captchaResponse.status != 200) {
+			res.status(500).json({ error: "There was a problem with ReCaptcha." });
+			return;
+		} else if (!captchaResponse.data.success) {
+			res.status(401).json({ error: "ReCaptcha validation failed." });
+		}
+
 		// Create new user with account info
 		var user = new User(req.body);
 		try {
@@ -72,7 +96,7 @@ mongoose.connect(dbUri, { useNewUrlParser: true, useUnifiedTopology: true, useCr
 
 			// Send token as cookie and in response
 			res.cookie('jwt', token);
-			res.status(200).json({ token });
+			res.status(201).json({ token });
 		} catch (err) {
 			// TODO: check the error and see if it is an input error. If so, respond to client with instructions on how to fix
 			console.log(err);
