@@ -80,6 +80,7 @@ mongoose.connect(dbUri, { useNewUrlParser: true, useUnifiedTopology: true, useCr
 			return;
 		} else if (!captchaResponse.data.success) {
 			res.status(401).json({ error: "ReCaptcha validation failed." });
+			return;
 		}
 
 		// Create new user with account info
