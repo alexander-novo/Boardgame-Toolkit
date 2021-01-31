@@ -4,13 +4,9 @@ const morgan = require('morgan');                // log requests to the console 
 const bodyParser = require('body-parser');       // pull information from HTML POST (express4)
 const cookieParser = require('cookie-parser');
 const path = require('path');
+const routes = require('./api/routes');			// set up routes for our api's
 
-//const User = require("./api/schemas/user.model");
-//const Project = require("./api/schemas/project.model");
-
-const routes = require('./api/routes');
-
-const app = express();                        // create our app w/ express
+const app = express();                        	// create our app w/ express
 const port = process.env.PORT || 8888;
 
 app.use((req,res,next) => {
@@ -18,8 +14,10 @@ app.use((req,res,next) => {
 	next();
 })
 
+//deliever index.html from dist/boargame-toolkit to the browser
 app.use(express.static(path.join(__dirname,'/dist/boardgame-toolkit')));
 app.use('node_modules', express.static(__dirname + '/node_modules'));
+
 app.use('/', routes);
 
 	// For all other get requests, send to index.html (allows for smooth Angular routing)
