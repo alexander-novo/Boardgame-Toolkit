@@ -17,6 +17,7 @@ import { RegisterComponent } from './register/register.component';
 import { ForgotComponent } from './forgot/forgot.component';
 import { HomeComponent } from './home/home.component';
 import { NewProjectComponent } from './new-project/new-project.component';
+import { AboutComponent } from './about/about.component'
 import { CookieService } from 'ngx-cookie-service';
 
 @NgModule({
@@ -26,7 +27,8 @@ import { CookieService } from 'ngx-cookie-service';
 		RegisterComponent,
 		ForgotComponent,
 		HomeComponent,
-		NewProjectComponent
+		NewProjectComponent,
+		AboutComponent
 	],
 	imports: [
 		BrowserModule,
