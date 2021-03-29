@@ -3,8 +3,15 @@ const mongoose = require('mongoose');
 const User = mongoose.model('User');
 const Project = mongoose.model("Project");
 
-const S3_BUCKET = "boardgame-toolkit-assets";
+const S3_BUCKET = process.env.S3_BUCKET;
 const MAX_ASSET_SIZE = 4_000_000;
+
+if (!S3_BUCKET) {
+	console.error("S3 Bucket not found. Please add to S3_BUCKET environment variable (through .env file and heroku local command on local machines).");
+	process.exit(1);
+} else {
+	console.log(`Using S3 bucket '${S3_BUCKET}'`);
+}
 
 // aws.config.region = "us-west-1";
 

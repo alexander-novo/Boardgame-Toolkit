@@ -82,7 +82,7 @@ export class RegisterService {
 	// Service for getting list of personal projects
 	// Must be logged in.
 	getMyProjects() {
-		return this.http.get<{ name: string, id: string, modified: Date, thumbnail: string }[]>('/api/projects/mine');
+		return this.http.get<{ name: string, id: string, modified: Date, thumbnail?: string }[]>('/api/projects/mine');
 	}
 
 	// Whether or not the user is currently logged in.
