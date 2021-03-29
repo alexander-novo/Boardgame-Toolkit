@@ -1,9 +1,7 @@
+const S3 = require('aws-sdk/clients/s3');
 const mongoose = require('mongoose');
-const User = mongoose.model('User')
-const axios = require('axios').default;
-const ejwt = require('express-jwt');
-const jwt = require('jsonwebtoken');
-const jwtSecret = process.env.JWT_SECRET || "keyboard cat";
+const User = mongoose.model('User');
+const Project = mongoose.model("Project");
 
 // Since we're using cookie-parser middleware, cookies should be added to req.cookies.
 // In /api/login and /api/register, we attached the auth token as the 'jwt' cookie.
