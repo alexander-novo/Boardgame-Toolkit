@@ -79,7 +79,7 @@ Variable Name | Where to Find
 AWS_ACCESS_KEY_ID | Login to your [AWS console](https://console.aws.amazon.com/iam/home#/security_credentials) and find your Access Keys
 AWS_SECRET_ACCESS_KEY | In the same console, you can choose to create an access key. When you do this, you will be given the secret **once** and never again.
 S3_BUCKET | The name of the bucket you would like to use.
-RECAPTCHA_SECRET | If you have the Heroku CLI, you can use the command `heroku config:get RECAPTCHA_SECRET -s`
+RECAPTCHA_SECRET | In the old version, this was kept in `captcha_secret.json`, so you can just copy and paste it over to the new file. If you have the Heroku CLI, you can use the command `heroku config:get RECAPTCHA_SECRET -s`.
 MONGODB_URI | The URI of whatever database you would like to use. If you installed it locally with the name `TestDB`, then it will be `mongodb://localhost/TestDB`
 
 ## Building the client
