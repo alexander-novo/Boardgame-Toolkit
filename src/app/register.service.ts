@@ -6,6 +6,7 @@ import { ObjectUnsubscribedError, Observable, Subject } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { CookieService } from 'ngx-cookie-service';
+import { FileInput } from 'ngx-material-file-input';
 
 // Service for managing basic account information
 // TODO: Rename to more descriptive name, such as 'AuthService', and put in /auth folder maybe?
@@ -28,9 +29,9 @@ export class RegisterService {
 	}
 
 	// Service for checking whether new account information (username/email) is unique
-	checkForUniqueUsername(user: string, email: string): Observable<any> {
+	checkForUniqueUsername(user: string, email: string) {
 		const params = new HttpParams().set("user", user).set("email", email);
-		return this.http.get("api/users/unique", { params });
+		return this.http.get<{ emailUnique: boolean, userUnique: boolean }>("api/users/unique", { params });
 	}
 
 	// Service for registering new user
@@ -38,8 +39,8 @@ export class RegisterService {
 	registerNewUser(user) {
 		// Change the Observable to a Subject, so multiple people can subscribe.
 		// TODO: set up return data type for info from server.
-		let obs = this.http.post<any>("api/register", user);
-		let sub = new Subject<any>();
+		let obs = this.http.post<{ token: string }>("api/register", user);
+		let sub = new Subject<{ token: string }>();
 		obs.subscribe(sub);
 
 		// Then subscribe to the Subject - when we get a response, the username is now dirty,
@@ -52,8 +53,8 @@ export class RegisterService {
 	login(creds: { username: string, password: string }) {
 		// Change the Observable to a Subject, so multiple people can subscribe.
 		// TODO: set up return data type for info from server.
-		let obs = this.http.post<any>('/api/login', creds);
-		let sub = new Subject<any>();
+		let obs = this.http.post<{ token: string }>('/api/login', creds);
+		let sub = new Subject<{ token: string }>();
 		obs.subscribe(sub);
 
 		// Then subscribe to the Subject - when we get a response, the username is now dirty.
@@ -64,19 +65,24 @@ export class RegisterService {
 	// Service for getting personal details (such as username, email, name).
 	// Must be logged in.
 	me() {
-		return this.http.get<any>('/api/users/me');
+		return this.http.get<{ username: string, email: string, name: string }>('/api/users/me');
 	}
 
 	// Service for creating new project.
 	// Must be logged in.
-	createNewProject(name: string) {
-		return this.http.put<any>('/api/projects/new', { name });
+	createNewProject(name: string, hasThumbnail: boolean, thumbnailFile: FileInput) {
+		var thumbnailDeats = hasThumbnail ? { name: thumbnailFile.files[0]?.name, size: thumbnailFile.files[0]?.size, type: thumbnailFile.files[0]?.type } : null;
+		return this.http.put<{ id: string, signedUrl?: string }>('/api/projects/new', { name, hasThumbnail, thumbnailDeats });
+	}
+
+	uploadAsset(url: string, file: File) {
+		return this.http.put<any>(url, file);
 	}
 
 	// Service for getting list of personal projects
 	// Must be logged in.
 	getMyProjects() {
-		return this.http.get<any[]>('/api/projects/mine');
+		return this.http.get<{ name: string, id: string, modified: Date, thumbnail?: string }[]>('/api/projects/mine');
 	}
 
 	// Whether or not the user is currently logged in.

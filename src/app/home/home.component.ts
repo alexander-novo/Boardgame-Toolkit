@@ -8,7 +8,7 @@ import { RegisterService } from '../register.service';
 })
 export class HomeComponent implements OnInit {
 
-	projects: { name: string, modified: Date }[] = [];
+	projects: { name: string, modified: Date, thumbnail?: string }[] = [];
 
 	constructor(private registerService: RegisterService) { }
 
