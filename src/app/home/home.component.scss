@@ -1,4 +1,21 @@
 .grid-layout-custom{
-    width: 50vw;
-    height: 50vh;
+  position: absolute;
+  top: 60px;
+  opacity: 1;
+  float: left;
+  padding: 5px 5px 5px 5px;
+  width: 90%;
+  background: rgb(153, 153, 153);
+  border-radius: 10px;
+  transform: scale(1);
+  -webkit-transform: scale(1);
+  -ms-transform: scale(1);
+  overflow: auto;  
+  }
+
+.new-project{
+   position: fixed;
+   bottom: 0;
+   right: 0;
+   padding: 20px;
   }
