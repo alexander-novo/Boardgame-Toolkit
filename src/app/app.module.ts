@@ -19,6 +19,7 @@ import { HomeComponent } from './home/home.component';
 import { NewProjectComponent } from './new-project/new-project.component';
 import { AboutComponent } from './about/about.component'
 import { CookieService } from 'ngx-cookie-service';
+import { MaterialFileInputModule } from 'ngx-material-file-input';
 
 @NgModule({
 	declarations: [
@@ -41,6 +42,7 @@ import { CookieService } from 'ngx-cookie-service';
 		HttpClientModule,
 		RecaptchaModule,
 		RecaptchaFormsModule,
+		MaterialFileInputModule,
 		JwtModule.forRoot({
 			config: {
 				tokenGetter: () => localStorage.getItem("jwt"),

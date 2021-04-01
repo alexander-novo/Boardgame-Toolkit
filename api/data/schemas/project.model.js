@@ -7,6 +7,7 @@ const ProjectScheme = new Schema({
 		created: { type: Date, required: true, default: Date.now },
 		modified: { type: Date, required: true, default: Date.now },
 	},
+	thumbnail: { type: String, required: false }
 });
 
 module.exports = model("Project", ProjectScheme);
