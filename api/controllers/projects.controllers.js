@@ -62,14 +62,14 @@ module.exports.newProject = async (req, res) => {
 		// TODO: Change the key to something more unique
 		const s3Params = {
 			Bucket: S3_BUCKET,
-			Key: `${encodeURIComponent(user.username)}/${encodeURIComponent(project.name)}/thumbnail`,
+			Key: `${user.username}/${project.name}/thumbnail`,
 			Expires: 360,
 			ContentType: req.body.thumbnailDeats.type,
 			ACL: 'public-read',
 			// ContentLength: req.body.thumbnailDeats.size,
 		};
 
-		const thumbnailUrl = `https://${s3Params.Bucket}.s3.amazonaws.com/${s3Params.Key}`;
+		const thumbnailUrl = `https://${s3Params.Bucket}.s3-us-west-1.amazonaws.com/${encodeURIComponent(s3Params.Key)}`;
 
 		s3.getSignedUrlPromise('putObject', s3Params).then(async (signedUrl) => {
 			console.log("Generated url:", signedUrl);
