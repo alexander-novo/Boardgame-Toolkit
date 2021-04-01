@@ -1,6 +1,8 @@
 <!-- Toolbar -->
 <mat-toolbar color="primary" class="app-header">
-	<div>Boardgame Toolkit</div>
+	<div>Boardgame Toolkit
+		<a mat-button routerLink="about" routerLinkActive="active">About</a>
+	</div>
 	<!-- If we aren't logged in, the navbar should encourage us to log in or register -->
 	<span class="nav-tool-items" *ngIf="!loggedIn()">
 		<a mat-button routerLink="login" routerLinkActive="active">Log in</a>
