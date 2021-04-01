@@ -10,7 +10,7 @@
 							<mat-card-title>{{project.name}}</mat-card-title>
 						</mat-card-header>
 						<div *ngIf= "!!project.thumbnail">
-							<img mat-card-md-image [src]= "project.thumbnail" />
+							<img mat-card-md-image [src]= "project.thumbnail" onerror= 'this.style.display = "none"' />
 						</div>
 						<!--<mat-icon>extension</mat-icon>-->
 						<mat-card-content>
