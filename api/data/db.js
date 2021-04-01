@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const dbUri = process.env.MONGODB_URI;
 
 if (!dbUri) {
-	console.err("MONGODB_URI not found. Please set environment variable. If testing locally, use .env file and heroku local.");
+	console.error("MONGODB_URI not found. Please set environment variable. If testing locally, use .env file and heroku local.");
 	process.exit(1);
 }
 
