@@ -85,7 +85,7 @@ module.exports.newProject = async (req, res) => {
 			// Respond with new project's id and thumbnail upload URL
 			res.status(200).json({ id: project.id, signedUrl });
 		}, (err) => {
-			console.log(err);
+			console.err('Error getting signed URL from S3:', err);
 			res.status(500).json(err);
 		});
 	} else {

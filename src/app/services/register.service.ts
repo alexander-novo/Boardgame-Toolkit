@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { FormGroup, ValidationErrors, AsyncValidatorFn } from '@angular/forms';
+import { FormGroup, AsyncValidatorFn } from '@angular/forms';
 
-import { ObjectUnsubscribedError, Observable, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { CookieService } from 'ngx-cookie-service';

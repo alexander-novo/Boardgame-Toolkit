@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
 import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree, Router } from '@angular/router';
 import { Observable } from 'rxjs';
-import { JwtHelperService } from '@auth0/angular-jwt';
-import { RegisterService } from './register.service';
+import { RegisterService } from './services/register.service';
 
 // A router guard for determining places we can't go if we aren't logged in
 @Injectable({

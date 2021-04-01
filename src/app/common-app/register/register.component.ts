@@ -3,7 +3,7 @@ import { FormGroup, FormControl, Validators, FormGroupDirective, NgForm } from '
 import { ErrorStateMatcher } from '@angular/material/core';
 import { Router } from '@angular/router';
 
-import { RegisterService, uniqueUsernameValidator } from '../register.service';
+import { RegisterService, uniqueUsernameValidator } from '../../services/register.service';
 
 // An ErrorStateMatcher which marks certain controls as in an error state if the form itself is invalid and has a specific error,
 // such as userNotUnique or emailNotUnique (which are overall form errors since it's a cross field validator)
