@@ -8,7 +8,7 @@ import { RegisterService } from '../register.service';
 })
 export class HomeComponent implements OnInit {
 
-	projects: { name: string, modified: Date, thumbnail?: string }[] = [];
+	projects: {id: string, name: string, modified: Date, thumbnail?: string }[] = [];
 
 	constructor(private registerService: RegisterService) { }
 
@@ -16,9 +16,11 @@ export class HomeComponent implements OnInit {
 		// Get list of projects
 		this.registerService.getMyProjects().subscribe(
 			proj => {
-				for (var project of proj) {
-					this.projects.push({ name: project.name, modified: project.modified })
-				}
+				//for (var project of proj) {
+				//	this.projects.push({ name: project.name, modified: project.modified, thmubnail: })
+
+			//	}
+			this.projects = proj;
 			}
 		)
 	}
