@@ -11,13 +11,14 @@ import { AngularMaterialModule } from '../angular-material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { FlexLayoutModule } from '@angular/flex-layout';
 
+
 @NgModule({
 	declarations: [
 		LoginComponent,
 		RegisterComponent,
 		ForgotComponent,
 		HomeComponent,
-		NewProjectComponent
+		NewProjectComponent,
 	],
 	imports: [
 		AngularMaterialModule,

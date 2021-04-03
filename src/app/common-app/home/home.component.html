@@ -14,7 +14,7 @@
 						</div>
 						<!--<mat-icon>extension</mat-icon>-->
 						<mat-card-content>
-							{{project.modified}}
+							{{project.modified | timeago:live}}
 						</mat-card-content>
 						<mat-card-actions>
 							<button mat-button>EDIT</button>

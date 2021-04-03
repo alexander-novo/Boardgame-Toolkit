@@ -12,6 +12,7 @@ import { AppComponent } from './app.component';
 import { CookieService } from 'ngx-cookie-service';
 import { CommonAppModule } from './common-app/common-app.module';
 import { AngularMaterialModule } from './angular-material.module';
+import { TimeagoModule } from 'ngx-timeago';
 
 @NgModule({
 	declarations: [
@@ -24,6 +25,7 @@ import { AngularMaterialModule } from './angular-material.module';
 		AppRoutingModule,
 		BrowserAnimationsModule,
 		HttpClientModule,
+		TimeagoModule.forRoot(),
 		JwtModule.forRoot({
 			config: {
 				tokenGetter: () => localStorage.getItem("jwt"),
