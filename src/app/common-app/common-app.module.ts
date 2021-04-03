@@ -10,6 +10,7 @@ import { MaterialFileInputModule } from 'ngx-material-file-input';
 import { AngularMaterialModule } from '../angular-material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { FlexLayoutModule } from '@angular/flex-layout';
+import { TimeagoModule } from 'ngx-timeago';
 
 
 @NgModule({
@@ -29,6 +30,7 @@ import { FlexLayoutModule } from '@angular/flex-layout';
 		ReactiveFormsModule,
 		RecaptchaModule,
 		RecaptchaFormsModule,
+		TimeagoModule,
 	]
 })
 export class CommonAppModule { }
