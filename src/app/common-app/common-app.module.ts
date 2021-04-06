@@ -13,6 +13,7 @@ import { TimeagoModule } from 'ngx-timeago';
 
 import { AngularMaterialModule } from '../angular-material.module';
 import { AppRoutingModule } from '../app-routing.module';
+import { PipesModule } from '../pipes/pipes.module';
 
 @NgModule({
 	declarations: [
@@ -29,6 +30,7 @@ import { AppRoutingModule } from '../app-routing.module';
 		FlexLayoutModule,
 		FormsModule,
 		MaterialFileInputModule,
+		PipesModule,
 		ReactiveFormsModule,
 		RecaptchaModule,
 		RecaptchaFormsModule,
