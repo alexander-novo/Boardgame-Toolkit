@@ -2,15 +2,15 @@
 	<!-- TODO: add ngIf to check for thumbnail then display thumbnail instead of extion icon. -->
 	<!-- rout the edit button to an empty workspace with a button to head back. -->
 
-	<mat-grid-list cols="4" rowHeight="260px" [gutterSize]="'10px'" class="grid-layout-custom">
+	<mat-grid-list cols="4" rowHeight="260px" [gutterSize]="'1px'" class="grid-layout-custom">
 		<ng-container>
-			<mat-grid-tile matRipple *ngFor="let project of projects" class="mat-elevation-z4">
+			<mat-grid-tile matRipple *ngFor="let project of projects">
 				<mat-card class="mat-card">
 					<mat-card-header>
-						<mat-card-title>{{project.name}}</mat-card-title>
+						<mat-card-title class= "text-oneline">{{project.name}}</mat-card-title>
 					</mat-card-header>
 					<div *ngIf="!!project.thumbnail">
-						<img mat-card-md-image [src]="project.thumbnail" onerror='this.style.display = "none"' />
+						<img class= "img" mat-card-image [src]="project.thumbnail" onerror='this.style.display = "none"' />
 					</div>
 					<!--<mat-icon>extension</mat-icon>-->
 					<mat-card-content>

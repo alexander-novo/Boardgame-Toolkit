@@ -1,12 +1,11 @@
 .grid-layout-custom{
   position: absolute;
-  top: 60px;
+  top: 70px;
   opacity: 1;
-  float: left;
-  padding: 5px 5px 5px 5px;
+  //float: left;
+  //padding: 5px 5px 5px 5px;
   width: 90%;
-  background: rgb(153, 153, 153);
-  border-radius: 10px;
+  //border-radius: 10px;
   transform: scale(1);
   -webkit-transform: scale(1);
   -ms-transform: scale(1);
@@ -23,6 +22,18 @@
 
   .mat-card{
     position: fixed;
+    width:90%;
     border-radius: 30px;
-    
+    justify-content: center
+  }
+  .text-oneline {
+    padding-top: 20px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .img{
+    padding-top:20px ;
+    height: 120px;
+    object-fit:contain
   }
