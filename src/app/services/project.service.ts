@@ -14,7 +14,7 @@ export class ProjectService {
 	// Must be logged in.
 	getProject(id: string) {
 		const params = new HttpParams().set("id", id);
-		return this.http.get<any>('api/projects/project', { params });
+		return this.http.get<any>('/api/projects/project', { params });
 	}
 
 	// Service for creating new project.

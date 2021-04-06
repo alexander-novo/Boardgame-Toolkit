@@ -19,11 +19,12 @@ router
 
 router
 	.route('/api/users/unique')
-	.get(ctrLogin.uniqueUser);
+	.get(ctrRegister.uniqueUser);
 
 router
 	.route('/api/users/me')
 	.get(ejwt(EJWT_OPTIONS), ctrLogin.personalInfo);
+
 router
 	.route('/api/projects/new')
 	.put(ejwt(EJWT_OPTIONS), ctrProjects.newProject);
@@ -31,6 +32,10 @@ router
 router
 	.route('/api/projects/mine')
 	.get(ejwt(EJWT_OPTIONS), ctrProjects.listProjects);
+
+router
+	.route('/api/projects/project')
+	.get(ejwt(EJWT_OPTIONS), ctrProjects.getProject);
 
 router
 	.route('/api/projects/assets/new')

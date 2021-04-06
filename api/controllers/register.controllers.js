@@ -9,6 +9,24 @@ if (!captchaSecret) {
 	process.exit(1);
 }
 
+// Unique user endpoint
+// Take username and email.
+// Respond with whether or not those are already in the database.
+module.exports.uniqueUser = async (req, res) => {
+	try {
+		// Check if the username or email is in the database
+		// TODO: This could probably be done with one query instead of 2 separate ones?
+		let userUnique = !await User.exists({ username: req.query.user });
+		let emailUnique = !await User.exists({ email: req.query.email });
+
+		// Respond with uniqueness
+		res.status(200).json({ emailUnique, userUnique });
+	}
+	catch (err) {
+		res.status(500).json(err);
+	}
+};
+
 // Register endpoint
 // Take new account info (username, password, email, name, etc.).
 // Generate new account, then sign in.

@@ -21,16 +21,7 @@ export class EditorComponent implements OnInit {
 		this.route.params.subscribe(params => {
 			this.projectId = window.decodeURIComponent(params['id']);
 
-			this.projectService.getProject(this.projectId).subscribe(
-				project => {
-					this.project = project;
-					console.log(this.project);
-				},
-				err => {
-					console.error(err);
-				},
-				() => { }
-			);
+			this.refreshProject();
 		});
 	}
 
@@ -49,11 +40,26 @@ export class EditorComponent implements OnInit {
 						err => console.error(err),
 						() => { }
 					)
+
+					this.refreshProject();
 				})
 			},
 			err => console.error(err),
 			() => { }
 		)
+	}
+
+	refreshProject(): void {
+		this.projectService.getProject(this.projectId).subscribe(
+			project => {
+				this.project = project;
+				console.log(this.project);
+			},
+			err => {
+				console.error(err);
+			},
+			() => { }
+		);
 	}
 
 }
