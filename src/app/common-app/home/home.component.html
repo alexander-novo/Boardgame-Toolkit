@@ -13,10 +13,10 @@
 						<img class= "img" mat-card-image [src]="project.thumbnail" onerror='this.style.display = "none"' />
 					</div>
 					<!--<mat-icon>extension</mat-icon>-->
-					<mat-card-content>
+					<mat-card-content class= "card-content">
 						{{project.modified | timeago:true}}
 					</mat-card-content>
-					<mat-card-actions>
+					<mat-card-actions class= "card-content" >
 						<button mat-button>EDIT</button>
 					</mat-card-actions>
 				</mat-card>
