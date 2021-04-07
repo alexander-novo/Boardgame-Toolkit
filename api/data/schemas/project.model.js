@@ -1,3 +1,4 @@
+const { stringify } = require("@angular/compiler/src/util");
 const { Schema, model } = require("mongoose");
 
 const ProjectScheme = new Schema({
@@ -7,7 +8,12 @@ const ProjectScheme = new Schema({
 		created: { type: Date, required: true, default: Date.now },
 		modified: { type: Date, required: true, default: Date.now },
 	},
-	thumbnail: { type: String, required: false }
+	thumbnail: { type: String, required: false },
+	assets: [{
+		name: { type: String, required: true },
+		url: { type: String, required: true },
+		size: { type: Number, required: true },
+	}]
 });
 
 module.exports = model("Project", ProjectScheme);

@@ -13,6 +13,7 @@ import { CookieService } from 'ngx-cookie-service';
 import { CommonAppModule } from './common-app/common-app.module';
 import { AngularMaterialModule } from './angular-material.module';
 import { TimeagoModule } from 'ngx-timeago';
+import { ProjectEditorModule } from './project-editor/project-editor.module';
 
 @NgModule({
 	declarations: [
@@ -20,6 +21,7 @@ import { TimeagoModule } from 'ngx-timeago';
 	],
 	imports: [
 		CommonAppModule,
+		ProjectEditorModule,
 		AngularMaterialModule,
 		BrowserModule,
 		AppRoutingModule,

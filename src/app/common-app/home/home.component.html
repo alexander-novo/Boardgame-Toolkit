@@ -16,8 +16,8 @@
 					<mat-card-content class= "card-content">
 						{{project.modified | timeago:true}}
 					</mat-card-content>
-					<mat-card-actions class= "card-content" >
-						<button mat-button>EDIT</button>
+					<mat-card-actions>
+						<a routerLink="/project/{{project.id}}" routerLinkActive="active" mat-button>EDIT</a>
 					</mat-card-actions>
 				</mat-card>
 			</mat-grid-tile>

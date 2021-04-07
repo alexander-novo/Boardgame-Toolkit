@@ -110,6 +110,7 @@ module.exports.listProjects = async (req, res) => {
 		user = await User.findById(req.user.id).populate('projects');
 	} catch (err) {
 		res.status(500).json(err);
+		return;
 	}
 
 	// TODO: this could probably be done better
@@ -120,5 +121,80 @@ module.exports.listProjects = async (req, res) => {
 
 	// Respond with list of projects
 	res.status(200).json(projects);
+}
 
+module.exports.newAssets = async (req, res) => {
+	req.body.assetDeats.forEach((asset, index) => {
+		if (!asset.size || asset.size > MAX_ASSET_SIZE) {
+			res.status(500).json({ error: "Asset size does not exist or exceeds max size.", maxSize: MAX_ASSET_SIZE, asset, index });
+			return;
+		}
+	});
+
+	let project;
+	try {
+		project = await Project.findById(req.body.id).populate('owner');
+	} catch (err) {
+		res.status(500).json(err);
+		return;
+	}
+
+	if (project.owner.id != req.user.id) {
+		res.status(403).json("You don't have permission for that.");
+		return;
+	}
+
+	let urls = new Array(req.body.assetDeats);
+	Promise.all(req.body.assetDeats.map((asset, assetIndex) => {
+		const s3 = new S3();
+
+		// TODO: Change the key to something more unique
+		// The key might overlap if an asset gets deleted
+		const s3Params = {
+			Bucket: S3_BUCKET,
+			Key: `${project.owner.username}/${project.name}/${project.assets.length + assetIndex}`,
+			Expires: 360,
+			ContentType: asset.type,
+			ACL: 'public-read',
+			// ContentLength: asset.size,
+		};
+
+		const newAssetUrl = `https://${s3Params.Bucket}.s3-us-west-1.amazonaws.com/${encodeURIComponent(s3Params.Key)}`;
+
+		return s3.getSignedUrlPromise('putObject', s3Params).then((signedUrl) => {
+			console.log("Generated url:", signedUrl);
+
+			project.assets.push({
+				name: asset.name,
+				url: newAssetUrl,
+				size: asset.size
+			});
+
+			urls[assetIndex] = signedUrl;
+		}, (err) => {
+			console.err('Error getting signed URL from S3:', err);
+			res.status(500).json(err);
+			return;
+		});
+	})).then(() => {
+		try {
+			project.save();
+		} catch (err) {
+			res.status(500).json(err);
+			return;
+		}
+
+		res.status(200).json(urls);
+	});
+}
+
+module.exports.getProject = async (req, res) => {
+	let project;
+	try {
+		project = await Project.findById(req.query.id).lean();
+	} catch (err) {
+		res.status(500).json(err);
+	}
+
+	res.status(200).json(project);
 }
