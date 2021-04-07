@@ -68,17 +68,6 @@ export class RegisterService {
 		return this.http.get<{ username: string, email: string, name: string }>('/api/users/me');
 	}
 
-	// Service for creating new project.
-	// Must be logged in.
-	createNewProject(name: string, hasThumbnail: boolean, thumbnailFile: FileInput) {
-		var thumbnailDeats = hasThumbnail ? { name: thumbnailFile.files[0]?.name, size: thumbnailFile.files[0]?.size, type: thumbnailFile.files[0]?.type } : null;
-		return this.http.put<{ id: string, signedUrl?: string }>('/api/projects/new', { name, hasThumbnail, thumbnailDeats });
-	}
-
-	uploadAsset(url: string, file: File) {
-		return this.http.put<any>(url, file);
-	}
-
 	// Service for getting list of personal projects
 	// Must be logged in.
 	getMyProjects() {
