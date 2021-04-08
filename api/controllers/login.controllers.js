@@ -29,24 +29,6 @@ module.exports.loginUser = async (req, res) => {
 	res.status(200).json({ token });
 };
 
-// Unique user endpoint
-// Take username and email.
-// Respond with whether or not those are already in the database.
-module.exports.uniqueUser = async (req, res) => {
-	try {
-		// Check if the username or email is in the database
-		// TODO: This could probably be done with one query instead of 2 separate ones?
-		let userUnique = !await User.exists({ username: req.query.user });
-		let emailUnique = !await User.exists({ email: req.query.email });
-
-		// Respond with uniqueness
-		res.status(200).json({ emailUnique, userUnique });
-	}
-	catch (err) {
-		res.status(500).json(err);
-	}
-};
-
 // Personal information endpoint
 // For a user with a jwt auth token, consume token and respond with personal info,
 // such as username, email, and name.

@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { RegisterService } from '../register.service';
+import { RegisterService } from '../../services/register.service';
 import { FileValidator, FileInput } from 'ngx-material-file-input';
+import { ProjectService } from 'src/app/services/project.service';
 
 @Component({
 	selector: 'app-new-project',
@@ -15,7 +16,7 @@ export class NewProjectComponent implements OnInit {
 		thumbnailFile: new FormControl('', [FileValidator.maxContentSize(4000000)]),
 	});
 
-	constructor(private registerService: RegisterService, private router: Router) { }
+	constructor(private registerService: RegisterService, private projectService: ProjectService, private router: Router) { }
 
 	ngOnInit(): void {
 	}
@@ -24,14 +25,14 @@ export class NewProjectComponent implements OnInit {
 		const validThumbnail: boolean = this.thumbnailFile.valid;
 		const thumbnailFile: FileInput = this.thumbnailFile.value;
 		var uploadingUrl: boolean = validThumbnail;
-		this.registerService.createNewProject(this.projName.value, validThumbnail, thumbnailFile).subscribe(
+		this.projectService.createNewProject(this.projName.value, validThumbnail, thumbnailFile).subscribe(
 			res => {
 				uploadingUrl &&= res.signedUrl !== undefined;
 
 				if (uploadingUrl) {
 					console.log(`Uploading to ${res.signedUrl}`);
 					console.log(thumbnailFile);
-					this.registerService.uploadAsset(res.signedUrl, thumbnailFile.files[0]).subscribe(
+					this.projectService.uploadAsset(res.signedUrl, thumbnailFile.files[0]).subscribe(
 						res => console.log(res),
 						err => console.log(err),
 						() => {

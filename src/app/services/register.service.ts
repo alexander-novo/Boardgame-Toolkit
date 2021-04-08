@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { FormGroup, ValidationErrors, AsyncValidatorFn } from '@angular/forms';
+import { FormGroup, AsyncValidatorFn } from '@angular/forms';
 
-import { ObjectUnsubscribedError, Observable, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { CookieService } from 'ngx-cookie-service';
@@ -66,17 +66,6 @@ export class RegisterService {
 	// Must be logged in.
 	me() {
 		return this.http.get<{ username: string, email: string, name: string }>('/api/users/me');
-	}
-
-	// Service for creating new project.
-	// Must be logged in.
-	createNewProject(name: string, hasThumbnail: boolean, thumbnailFile: FileInput) {
-		var thumbnailDeats = hasThumbnail ? { name: thumbnailFile.files[0]?.name, size: thumbnailFile.files[0]?.size, type: thumbnailFile.files[0]?.type } : null;
-		return this.http.put<{ id: string, signedUrl?: string }>('/api/projects/new', { name, hasThumbnail, thumbnailDeats });
-	}
-
-	uploadAsset(url: string, file: File) {
-		return this.http.put<any>(url, file);
 	}
 
 	// Service for getting list of personal projects

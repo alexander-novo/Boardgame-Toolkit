@@ -123,3 +123,15 @@ While logged out, log in as an existing user. The refresh the page.
 While logged in, create a new project. Make certain to upload a thumbnail.
 
 **Outcome**: The new project is created in the database and displayed in the user's project list, which the user is redirected to. The database shows a thumbnail url and going to the url in a browser displays the correct image.
+
+### Open a project in the editor
+
+While logged in, open an existing project in the editor by clicking "edit".
+
+**Outcome**: Your view should be changed to the editor view, and the project should be displayed in the console.
+
+### Upload an asset
+
+While having a project open, upload an asset by dragging and dropping a picture onto the work space.
+
+**Outcome**: The console should display the new project, including the newly created asset. Clicking o nthe asset url should take you to the uploaded image.
