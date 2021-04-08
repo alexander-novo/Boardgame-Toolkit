@@ -5,27 +5,20 @@ import { RegisterComponent } from './common-app/register/register.component';
 import { ForgotComponent } from './common-app/forgot/forgot.component';
 import { HomeComponent } from './common-app/home/home.component';
 import { LoginGuard } from './login.guard';
-<<<<<<< HEAD
-import { NewProjectComponent } from './new-project/new-project.component';
-import { AboutComponent } from './about/about.component';
-=======
+import { AboutComponent } from './common-app/about/about.component';
 import { NewProjectComponent } from './common-app/new-project/new-project.component';
 import { EditorComponent } from './project-editor/editor/editor.component';
->>>>>>> origin/master
 
 const routes: Routes = [
 	// The home page can only be accessed if you are logged in. If not logged in, LoginGuard redirects to /login
 	{ path: '', component: HomeComponent, canActivate: [LoginGuard] },
 	{ path: 'login', component: LoginComponent },
 	{ path: 'register', component: RegisterComponent },
-	{ path: 'forgot', component: ForgotComponent },
+	{ path: 'forgot', component: ForgotComponent },	
+	{ path: 'about', component: AboutComponent },
 	// The new project page can only be accessed if you are logged in. If not logged in, LoginGuard redirects to /login
 	{ path: 'new-project', component: NewProjectComponent, canActivate: [LoginGuard] },
-<<<<<<< HEAD
-	{ path: 'about', component: AboutComponent},
-=======
 	{ path: 'project/:id', component: EditorComponent, pathMatch: 'prefix' }
->>>>>>> origin/master
 ];
 
 @NgModule({

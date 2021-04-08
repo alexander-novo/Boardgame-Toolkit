@@ -9,15 +9,6 @@ import { JwtModule } from "@auth0/angular-jwt";
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 
-<<<<<<< HEAD
-import { LoginComponent } from './login/login.component';
-import { RegisterComponent } from './register/register.component';
-import { ForgotComponent } from './forgot/forgot.component';
-import { HomeComponent } from './home/home.component';
-import { NewProjectComponent } from './new-project/new-project.component';
-import { AboutComponent } from './about/about.component'
-=======
->>>>>>> origin/master
 import { CookieService } from 'ngx-cookie-service';
 import { CommonAppModule } from './common-app/common-app.module';
 import { AngularMaterialModule } from './angular-material.module';
@@ -27,15 +18,6 @@ import { ProjectEditorModule } from './project-editor/project-editor.module';
 @NgModule({
 	declarations: [
 		AppComponent,
-<<<<<<< HEAD
-		LoginComponent,
-		RegisterComponent,
-		ForgotComponent,
-		HomeComponent,
-		NewProjectComponent,
-		AboutComponent
-=======
->>>>>>> origin/master
 	],
 	imports: [
 		CommonAppModule,
