@@ -1,6 +1,6 @@
 <mat-sidenav-container (appDropZone)="onFileDrop($event)" autosize>
 	<mat-sidenav mode="side" opened disableClose>
-		This is the toolbar
+		<button mat-raised-button (click)="fiddle()">Fiddle</button>
 	</mat-sidenav>
 	<mat-sidenav-content>
 		<canvas id="toolkit-canvas">

@@ -62,4 +62,18 @@ export class EditorComponent implements OnInit {
 		);
 	}
 
+	fiddle(): void {
+		this.project.date.modified = Date.now();
+
+		this.projectService.saveProject(this.projectId, this.project).subscribe(
+			() => {
+				console.log("Saved");
+			},
+			err => {
+				console.log(err);
+			},
+			() => { }
+		)
+	}
+
 }

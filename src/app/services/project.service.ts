@@ -17,6 +17,11 @@ export class ProjectService {
 		return this.http.get<any>('/api/projects/project', { params });
 	}
 
+	saveProject(id: string, project: any) {
+		const params = new HttpParams().set("id", id);
+		return this.http.put<void>('/api/projects/project', project, { params });
+	}
+
 	// Service for creating new project.
 	// Must be logged in.
 	createNewProject(name: string, hasThumbnail: boolean, thumbnailFile: FileInput) {
