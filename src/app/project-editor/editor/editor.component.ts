@@ -1,6 +1,22 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ProjectService } from 'src/app/services/project.service';
+import { NestedTreeControl } from '@angular/cdk/tree';
+import { MatTreeNestedDataSource } from '@angular/material/tree';
+
+interface AssetNode{
+	name: string;
+	children?: AssetNode[];
+}
+
+const TREE_DATA: AssetNode[] = [
+	{
+		name: 'Assets',
+		children: [
+			{name: 'list of assets'},
+		]
+	},
+];
 
 @Component({
 	selector: 'app-editor',
@@ -11,11 +27,15 @@ export class EditorComponent implements OnInit {
 
 	projectId: string;
 	project: any;
+	treeControl = new NestedTreeControl<AssetNode>(node => node.children);
+	dataSource = new MatTreeNestedDataSource<AssetNode>();
 
 	constructor(
 		private route: ActivatedRoute,
 		private projectService: ProjectService
-	) { }
+	) { 
+		this.dataSource.data = TREE_DATA;
+	}
 
 	ngOnInit(): void {
 		this.route.params.subscribe(params => {
@@ -62,4 +82,5 @@ export class EditorComponent implements OnInit {
 		);
 	}
 
+	hasChild = (_: number, node: AssetNode) => !!node.children && node.children.length > 0;
 }
