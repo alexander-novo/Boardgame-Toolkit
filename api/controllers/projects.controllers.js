@@ -116,7 +116,7 @@ module.exports.listProjects = async (req, res) => {
 	// TODO: this could probably be done better
 	let projects = [];
 	for (var project of user.projects) {
-		projects.push({ name: project.name, id: project.id, modified: project.date.modified, thumbnail: project.thumbnail });
+		projects.push({ name: project.name, id: project.id, modified: project.date.modified, thumbnail: project.thumbnail, assets: project.assets });
 	}
 
 	// Respond with list of projects
@@ -197,4 +197,20 @@ module.exports.getProject = async (req, res) => {
 	}
 
 	res.status(200).json(project);
+}
+
+//lists the assets of a single project.
+module.exports.getAssets = async (req,res) => {
+	try{
+		project = await Project.findById(req.quer.id).lean();
+	} catch(err) {
+		res.status(500).json(err);
+	}
+
+	let Assets = [];
+	for (var project of user.projects) {
+		Assets.push({ asset: project.assets });
+	}
+
+	res.status(200).json(Assets);
 }
