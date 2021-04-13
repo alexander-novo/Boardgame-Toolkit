@@ -1,6 +1,16 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, ViewChild } from '@angular/core';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatSelectionList } from '@angular/material/list';
 import { ActivatedRoute } from '@angular/router';
 import { ProjectService } from 'src/app/services/project.service';
+
+export interface CollectionDialogData {
+	newCollection: {
+		name: string,
+		assets: Array<number>,
+	};
+	assets: Array<{ asset: any, index: number }>;
+}
 
 @Component({
 	selector: 'app-editor',
@@ -14,7 +24,8 @@ export class EditorComponent implements OnInit {
 
 	constructor(
 		private route: ActivatedRoute,
-		private projectService: ProjectService
+		private projectService: ProjectService,
+		private dialog: MatDialog,
 	) { }
 
 	ngOnInit(): void {
@@ -40,9 +51,9 @@ export class EditorComponent implements OnInit {
 						err => console.error(err),
 						() => { }
 					)
+				});
 
-					this.refreshProject();
-				})
+				this.refreshProject();
 			},
 			err => console.error(err),
 			() => { }
@@ -62,18 +73,58 @@ export class EditorComponent implements OnInit {
 		);
 	}
 
-	fiddle(): void {
-		this.project.date.modified = Date.now();
+	newCollection(): void {
+		let newCollectionName: string = '';
+		const dialogRef = this.dialog.open(CollectionDialogComponent, {
+			width: '400px',
+			data: {
+				newCollection: {
+					name: newCollectionName,
+					assets: [],
+				},
+				assets: this.project.assets.filter(asset => asset.assetCollection === undefined).map((asset, index) => { return { asset, index } }),
+			}
+		});
 
-		this.projectService.saveProject(this.projectId, this.project).subscribe(
-			() => {
-				console.log("Saved");
-			},
-			err => {
-				console.log(err);
-			},
-			() => { }
-		)
+		let project = this.project;
+		let projectService = this.projectService;
+		dialogRef.afterClosed().subscribe(newCollection => {
+			if (newCollection !== undefined) {
+				project.assetCollections.push(newCollection);
+				for (let index of newCollection.assets) {
+					project.assets[index].assetCollection = project.assetCollections.length - 1;
+				}
+
+				projectService.saveProject(this.projectId, project).subscribe(
+					() => { },
+					err => {
+						console.error(err);
+					},
+					() => { }
+				);
+			}
+		});
+	}
+
+}
+
+@Component({
+	selector: 'collection-dialog',
+	templateUrl: 'collection-dialog.component.html',
+})
+export class CollectionDialogComponent {
+	@ViewChild('collectionList') collectionList: MatSelectionList;
+
+	constructor(
+		public dialogRef: MatDialogRef<CollectionDialogComponent>,
+		@Inject(MAT_DIALOG_DATA) public data: CollectionDialogData) { }
+
+	onNoClick(): void {
+		this.dialogRef.close();
+	}
+
+	onOkClick(): void {
+		this.dialogRef.close({ name: this.data.newCollection.name, assets: this.collectionList.selectedOptions.selected.map(option => option.value) })
 	}
 
 }
