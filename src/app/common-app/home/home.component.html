@@ -1,34 +1,60 @@
-<div class="login-wrapper" fxLayout="row" fxLayoutAlign="center center">
-	<!-- TODO: add ngIf to check for thumbnail then display thumbnail instead of extion icon. -->
-	<!-- rout the edit button to an empty workspace with a button to head back. -->
+<!-- TODO: add ngIf to check for thumbnail then display thumbnail instead of extion icon. -->
+<!-- rout the edit button to an empty workspace with a button to head back. -->
 
-	<mat-grid-list cols="4" rowHeight="260px" [gutterSize]="'1px'" class="grid-layout-custom">
-		<ng-container>
-			<mat-grid-tile matRipple *ngFor="let project of projects">
-				<mat-card class="mat-card">
-					<mat-card-header>
-						<mat-card-title class= "text-oneline">{{project.name}}</mat-card-title>
-					</mat-card-header>
+<!-- <mat-grid-list cols="4" rowHeight="300px" [gutterSize]="'1px'" class="grid-layout-custom">
+	<ng-container>
+		<mat-grid-tile matRipple *ngFor="let project of projects">
+			<mat-card class="project-card">
 					<div *ngIf="!!project.thumbnail">
-						<img class= "img" mat-card-image [src]="project.thumbnail" onerror='this.style.display = "none"' />
+				<img mat-card-image [src]="project.thumbnail" class="thumbnail"
+					onerror='this.style.display = "none"' />
 					</div>
-					<!--<mat-icon>extension</mat-icon>-->
-					<mat-card-content class= "card-content">
-						{{project.modified | timeago:true}}
-					</mat-card-content>
-					<mat-card-actions>
-						<a routerLink="/project/{{project.id}}" routerLinkActive="active" mat-button>EDIT</a>
-					</mat-card-actions>
-				</mat-card>
-			</mat-grid-tile>
-		</ng-container>
-	</mat-grid-list>
+				<mat-icon>extension</mat-icon>
+				<mat-card-header>
+					<mat-card-title>{{project.name}}</mat-card-title>
+					<mat-card-subtitle>
+						Last Edited {{project.modified | timeago:true}}
+					</mat-card-subtitle>
+				</mat-card-header>
+				<mat-card-actions>
+					<button mat-button routerLink="/project/{{project.id}}" routerLinkActive="active">EDIT</button>
+				</mat-card-actions>
+			</mat-card>
+		</mat-grid-tile>
+	</ng-container>
+</mat-grid-list> -->
 
-	<!-- new projects button-->
-	<mat-card-actions class="new-project">
-		<div fxFlex></div>
-		<a mat-fab routerLink="new-project">
-			<mat-icon>note_add</mat-icon>
-		</a>
-	</mat-card-actions>
+<div class="grid-container">
+	<h1 class="mat-h1">Your projects</h1>
+	<mat-grid-list cols="5" rowHeight="350px">
+		<mat-grid-tile *ngFor="let project of projects">
+			<mat-card class="dashboard-card">
+				<img mat-card-image [src]="project.thumbnail === undefined ? THUMBNAIL_NOT_FOUND : project.thumbnail"
+					alt="thumbnail" class="thumbnail" />
+				<mat-card-header>
+					<mat-card-title>
+						{{project.name}}
+						<button mat-icon-button class="more-button" [matMenuTriggerFor]="menu" aria-label="Toggle menu">
+							<mat-icon>more_vert</mat-icon>
+						</button>
+						<mat-menu #menu="matMenu" xPosition="before">
+							<button mat-menu-item>Expand</button>
+							<button mat-menu-item>Remove</button>
+						</mat-menu>
+					</mat-card-title>
+					<mat-card-subtitle>
+						Last Edited {{project.modified | timeago:true}}
+					</mat-card-subtitle>
+				</mat-card-header>
+			</mat-card>
+		</mat-grid-tile>
+	</mat-grid-list>
 </div>
+
+<!-- new projects button-->
+<mat-card-actions class="new-project">
+	<div fxFlex></div>
+	<a mat-fab routerLink="new-project">
+		<mat-icon>note_add</mat-icon>
+	</a>
+</mat-card-actions>

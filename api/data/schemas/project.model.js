@@ -13,6 +13,11 @@ const ProjectScheme = new Schema({
 		name: { type: String, required: true },
 		url: { type: String, required: true },
 		size: { type: Number, required: true },
+		assetCollection: { type: Number, required: false },
+	}],
+	assetCollections: [{
+		name: { type: String, required: true },
+		assets: [{ type: Number, required: true }]
 	}]
 });
 

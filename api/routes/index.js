@@ -35,7 +35,8 @@ router
 
 router
 	.route('/api/projects/project')
-	.get(ejwt(EJWT_OPTIONS), ctrProjects.getProject);
+	.get(ejwt(EJWT_OPTIONS), ctrProjects.getProject)
+	.put(ejwt(EJWT_OPTIONS), ctrProjects.saveProject);
 
 router
 	.route('/api/projects/assets/new')
