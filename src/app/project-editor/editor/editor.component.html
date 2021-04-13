@@ -1,12 +1,18 @@
 <mat-sidenav-container (appDropZone)="onFileDrop($event)" autosize>
 	<mat-sidenav mode="side" opened disableClose>
 		<mat-tree [dataSource]="dataSource" [treeControl]="treeControl" class="example-tree">
+			<mat-button-toggle-group [ngModel]="selectedElement" (ngModelChange)="select($event)">			
 			<!-- This is the tree node template for leaf nodes -->
 			<mat-tree-node *matTreeNodeDef="let node" matTreeNodeToggle>
 			  <li class="mat-tree-node">
 				<!-- use a disabled button to provide padding for tree leaf -->
 				<button mat-icon-button disabled></button>
-				{{node.name}}
+				<!-- <div matRipple matRippleDisabled="true" #ripple (click)="select(node.type, node.index, ripple)" class="element-select"> -->
+				<mat-button-toggle [value]="{type: node.type, index: node.index}">
+					<mat-icon *ngIf="node.type !== undefined" class="type-icon">{{getDisplayIcon(node.type)}}</mat-icon>
+					{{node.name}}
+				</mat-button-toggle>	
+				<!-- </div> -->
 			  </li>
 			</mat-tree-node>
 			<!-- This is the tree node template for expandable nodes -->
@@ -19,13 +25,17 @@
 					  {{treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right'}}
 					</mat-icon>
 				  </button>
-				  {{node.name}}
+				  <mat-button-toggle [value]="{type: node.type, index: node.index}">
+				  	<mat-icon *ngIf="node.type !== undefined" class="type-icon">{{getDisplayIcon(node.type)}}</mat-icon>
+				  	{{node.name}}
+				  </mat-button-toggle>
 				</div>
 				<ul [class.example-tree-invisible]="!treeControl.isExpanded(node)">
 				  <ng-container matTreeNodeOutlet></ng-container>
 				</ul>
 			  </li>
 			</mat-nested-tree-node>
+		</mat-button-toggle-group>		
 		</mat-tree>
 		<button mat-raised-button (click)="newCollection()">New Collection</button>
 	</mat-sidenav>
