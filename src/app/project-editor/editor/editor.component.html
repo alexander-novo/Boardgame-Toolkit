@@ -4,6 +4,6 @@
 		This is the toolbar
 	</mat-sidenav>
 	<mat-sidenav-content>
-		<canvas #myCanvas width="900" height="900"></canvas>
+		<canvas #myCanvas width="900" height="900"(mousedown)="mdEvent($event)" (mouseup)="muEvent($event)" (mousemove)="mmEvent($event)"></canvas>
 	</mat-sidenav-content>
 </mat-sidenav-container>

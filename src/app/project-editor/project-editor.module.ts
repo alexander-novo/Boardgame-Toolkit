@@ -5,6 +5,7 @@ import { EditorComponent } from './editor/editor.component';
 //import { CanvasComponent } from './editor/canvas.component';
 import { AngularMaterialModule } from '../angular-material.module';
 import { DirectivesModule } from '../directives/directives.module';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 
 
 
@@ -14,6 +15,7 @@ import { DirectivesModule } from '../directives/directives.module';
 		CommonModule,
 		AngularMaterialModule,
 		DirectivesModule,
+		DragDropModule,
 	]
 })
 export class ProjectEditorModule { }
