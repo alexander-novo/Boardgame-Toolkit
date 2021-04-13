@@ -73,6 +73,7 @@ export class EditorComponent implements OnInit {
 		this.projectService.getProject(this.projectId).subscribe(
 			project => {
 				this.project = project;
+				this.refreshAssets();
 				console.log(this.project);
 			},
 			err => {
@@ -80,6 +81,17 @@ export class EditorComponent implements OnInit {
 			},
 			() => { }
 		);
+	}
+
+	refreshAssets(): void {
+		let Assets = {
+			name: 'Assets',
+			children: []
+		};
+		this.project.assets.forEach(asset=>Assets.children.push({
+			name: asset.name,
+		})); 
+		this.dataSource.data = [Assets];
 	}
 
 	hasChild = (_: number, node: AssetNode) => !!node.children && node.children.length > 0;
