@@ -11,21 +11,17 @@ enum DisplayType {
 	Asset, Collection
 }
 
-interface AssetNode {
-	name: string;
-	children?: AssetNode[];
-	type?: DisplayType;
-	index?: number;
+// For referncing things like collections and assets
+interface SelectableObjectRef {
+	type: DisplayType;
+	index: number;
 }
 
-const TREE_DATA: AssetNode[] = [
-	{
-		name: 'Assets',
-		children: [
-			{ name: 'list of assets' },
-		]
-	},
-];
+interface SelectableNode {
+	name: string;
+	ref: SelectableObjectRef;
+	children?: SelectableNode[];
+}
 
 export interface CollectionDialogData {
 	newCollection: {
@@ -51,16 +47,16 @@ export class EditorComponent implements OnInit {
 	projectId: string;
 	project: any;
 	drawableAssets: DrawableAsset[];
-	treeControl = new NestedTreeControl<AssetNode>(node => node.children);
-	dataSource = new MatTreeNestedDataSource<AssetNode>();
-	selectedElement: { type: DisplayType, index: number };
+	treeControl = new NestedTreeControl<SelectableNode>(node => node.children);
+	dataSource = new MatTreeNestedDataSource<SelectableNode>();
+	selectedElement: SelectableObjectRef;
 
 	constructor(
 		private route: ActivatedRoute,
 		private projectService: ProjectService,
 		private dialog: MatDialog,
 	) {
-		this.dataSource.data = TREE_DATA;
+		this.dataSource.data = [];
 	}
 
 	ngOnInit(): void {
@@ -104,6 +100,7 @@ export class EditorComponent implements OnInit {
 				this.drawableAssets = this.project.assets.map((asset, assetIndex) => {
 					let image = new Image();
 					image.src = asset.url;
+					image.onload = this.drawAll.bind(this);
 					return { asset, assetIndex, image, }
 				}
 				)
@@ -224,6 +221,12 @@ export class EditorComponent implements OnInit {
 
 	//draws all assets uploaded.
 	private drawAll() {
+		if (!this.context || !this.project) {
+			console.log("Tried to draw, but no context/project:");
+			console.log(this.context);
+			return;
+		}
+
 		//set scale for canvas images to half thier size
 		this.context.scale(.5, .5);
 
@@ -267,42 +270,52 @@ export class EditorComponent implements OnInit {
 
 	//private dragAsset(assets){}
 	ngAfterViewInit(): void {
+		console.log("Got context");
 		this.context = (this.myCanvas.nativeElement as HTMLCanvasElement).getContext('2d');
+		this.drawAll();
 	}
 
 	refreshAssets(): void {
-		let Assets = {
-			name: 'Assets',
-			children: []
-		};
-		this.project.assets.forEach((asset, index) => {
+		let assets: SelectableNode[] = [];
+
+		this.project.assets.forEach((asset, index: number) => {
+			// Only list assets which arne't in a collection here
 			if (asset.assetCollection === undefined) {
-				Assets.children.push({
+				assets.push({
 					name: asset.name,
-					type: DisplayType.Asset,
-					index,
-				})
+					ref: {
+						type: DisplayType.Asset,
+						index,
+					},
+				});
 			}
 		});
-		this.project.assetCollections.forEach((collection, index) => {
-			let CollectionNode = {
+
+		this.project.assetCollections.forEach((collection, index: number) => {
+			let collectionNode: SelectableNode = {
 				name: collection.name,
-				type: DisplayType.Collection,
-				index,
-				children: []
+				ref: {
+					type: DisplayType.Collection,
+					index,
+				},
+				children: [],
 			};
-			collection.assets.forEach(assetIndex => {
+
+			collection.assets.forEach((assetIndex: number) => {
 				let asset = this.project.assets[assetIndex];
-				CollectionNode.children.push({
+				collectionNode.children.push({
 					name: asset.name,
-					type: DisplayType.Asset,
-					index: assetIndex,
-				})
-			})
-			Assets.children.push(CollectionNode);
+					ref: {
+						type: DisplayType.Asset,
+						index: assetIndex,
+					},
+				});
+			});
+
+			assets.push(collectionNode);
 		});
-		this.dataSource.data = [Assets];
-		console.log(this.dataSource.data)
+
+		this.dataSource.data = assets;
 	}
 
 	getDisplayIcon(type: DisplayType): string {
@@ -314,7 +327,7 @@ export class EditorComponent implements OnInit {
 		}
 	}
 
-	hasChild = (_: number, node: AssetNode) => !!node.children && node.children.length > 0;
+	hasChild = (_: number, node: SelectableNode) => !!node.children && node.children.length > 0;
 
 	select(item: { type: DisplayType, index: number }): void {
 		console.log("changed selected item to")

@@ -13,12 +13,21 @@ mat-sidenav {
 	width: 300px;
 }
 
-.type-icon{
+.type-icon {
 	margin-right: 10px;
 }
 
-.element-select{
+.element-select {
 	width: 100%;
 	display: flex;
 	align-items: center;
+}
+
+.selectable {
+	width: 100%;
+}
+
+#new-collection {
+	margin-top: 10px;
+	width: 100%
 }
