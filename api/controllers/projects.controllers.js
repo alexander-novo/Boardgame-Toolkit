@@ -116,7 +116,7 @@ module.exports.listProjects = async (req, res) => {
 	// TODO: this could probably be done better
 	let projects = [];
 	for (var project of user.projects) {
-		projects.push({ name: project.name, id: project.id, modified: project.date.modified, thumbnail: project.thumbnail, assets: project.assets });
+		projects.push({ name: project.name, id: project.id, modified: project.date.modified, thumbnail: project.thumbnail });
 	}
 
 	// Respond with list of projects

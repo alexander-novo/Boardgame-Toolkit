@@ -24,7 +24,14 @@ const ProjectScheme = new Schema({
 	}],
 	assetCollections: [{
 		name: { type: String, required: true },
-		assets: [{ type: Number, required: true }]
+		assets: [{ type: Number, required: true }],
+		position: {
+			type: {
+				x: { type: Number, required: true },
+				y: { type: Number, required: true },
+			},
+			required: false,
+		}
 	}]
 });
 
