@@ -1,21 +1,18 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-import { EditorComponent } from './editor/editor.component';
-//import { CanvasComponent } from './editor/canvas.component';
+import { CollectionDialogComponent, EditorComponent } from './editor/editor.component';
 import { AngularMaterialModule } from '../angular-material.module';
 import { DirectivesModule } from '../directives/directives.module';
-import { DragDropModule } from '@angular/cdk/drag-drop';
-
-
+import { FormsModule } from '@angular/forms';
 
 @NgModule({
-	declarations: [EditorComponent],
+	declarations: [EditorComponent, CollectionDialogComponent],
 	imports: [
 		CommonModule,
 		AngularMaterialModule,
 		DirectivesModule,
-		DragDropModule,
+		FormsModule,
 	]
 })
 export class ProjectEditorModule { }

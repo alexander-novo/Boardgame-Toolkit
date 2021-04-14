@@ -1,7 +1,39 @@
 import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
-import { FlexAlignStyleBuilder } from '@angular/flex-layout';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatSelectionList } from '@angular/material/list';
 import { ActivatedRoute } from '@angular/router';
 import { ProjectService } from 'src/app/services/project.service';
+import { NestedTreeControl } from '@angular/cdk/tree';
+import { MatTreeNestedDataSource } from '@angular/material/tree';
+import { Inject } from '@angular/core';
+
+enum DisplayType{
+	Asset, Collection
+}
+
+interface AssetNode{
+	name: string;
+	children?: AssetNode[];
+	type?: DisplayType;
+	index?: number;
+}
+
+const TREE_DATA: AssetNode[] = [
+	{
+		name: 'Assets',
+		children: [
+			{name: 'list of assets'},
+		]
+	},
+];
+
+export interface CollectionDialogData {
+	newCollection: {
+		name: string,
+		assets: Array<number>,
+	};
+	assets: Array<{ asset: any, index: number }>;
+}
 
 interface DrawableAsset {
 	asset: any;
@@ -19,11 +51,17 @@ export class EditorComponent implements OnInit {
 	projectId: string;
 	project: any;
 	drawableAssets: DrawableAsset[];
+	treeControl = new NestedTreeControl<AssetNode>(node => node.children);
+	dataSource = new MatTreeNestedDataSource<AssetNode>();
+	selectedElement: {type: DisplayType, index: number};
 
 	constructor(
 		private route: ActivatedRoute,
-		private projectService: ProjectService
-	) { }
+		private projectService: ProjectService,
+		private dialog: MatDialog,
+	) { 
+		this.dataSource.data = TREE_DATA;
+	}
 
 	ngOnInit(): void {
 		this.route.params.subscribe(params => {
@@ -48,9 +86,9 @@ export class EditorComponent implements OnInit {
 						err => console.error(err),
 						() => { }
 					)
+				});
 
-					this.refreshProject();
-				})
+				this.refreshProject();
 			},
 			err => console.error(err),
 			() => { }
@@ -61,6 +99,7 @@ export class EditorComponent implements OnInit {
 		this.projectService.getProject(this.projectId).subscribe(
 			project => {
 				this.project = project;
+				this.refreshAssets();
 				console.log(this.project);
 				this.drawableAssets = this.project.assets.map((asset, assetIndex) => {
 					let image = new Image();
@@ -231,8 +270,111 @@ export class EditorComponent implements OnInit {
 	ngAfterViewInit(): void {
 		this.context = (this.myCanvas.nativeElement as HTMLCanvasElement).getContext('2d');
 	}
+	refreshAssets(): void {
+		let Assets = {
+			name: 'Assets',
+			children: []
+		};
+		this.project.assets.forEach((asset, index)=>{
+			if(asset.assetCollection === undefined){
+				Assets.children.push({
+					name: asset.name,
+					type: DisplayType.Asset,
+					index,
+				})
+			}
+		}); 
+		this.project.assetCollections.forEach((collection, index)=>{
+			let CollectionNode = {
+				name: collection.name,
+				type: DisplayType.Collection,
+				index,
+				children: []
+			};
+			collection.assets.forEach(assetIndex=>{
+				let asset = this.project.assets[assetIndex];
+				CollectionNode.children.push({
+					name: asset.name,
+					type: DisplayType.Asset,
+					index: assetIndex,
+				})
+			})
+			Assets.children.push(CollectionNode);
+		});
+		this.dataSource.data = [Assets];
+		console.log(this.dataSource.data)
+	}
+
+	getDisplayIcon(type: DisplayType): string {
+		switch (type){
+			case DisplayType.Asset:
+				return 'image'
+			case DisplayType.Collection:
+				return 'collections'
+		}
+	}
+
+	hasChild = (_: number, node: AssetNode) => !!node.children && node.children.length > 0;
+
+	select(item: {type: DisplayType, index: number}): void {
+		console.log("changed selected item to")
+		console.log(item)
+		this.selectedElement = item
+	}
+
+	newCollection(): void {
+		let newCollectionName: string = '';
+		const dialogRef = this.dialog.open(CollectionDialogComponent, {
+			width: '400px',
+			data: {
+				newCollection: {
+					name: newCollectionName,
+					assets: [],
+				},
+				assets: this.project.assets.filter(asset => asset.assetCollection === undefined).map((asset, index) => { return { asset, index } }),
+			}
+		});
+
+		let project = this.project;
+		let projectService = this.projectService;
+		dialogRef.afterClosed().subscribe(newCollection => {
+			if (newCollection !== undefined) {
+				project.assetCollections.push(newCollection);
+				for (let index of newCollection.assets) {
+					project.assets[index].assetCollection = project.assetCollections.length - 1;
+				}
+
+				this.refreshAssets();
+				projectService.saveProject(this.projectId, project).subscribe(
+					() => { },
+					err => {
+						console.error(err);
+					},
+					() => { }
+				);
+			}
+		});
+	}
 
 }
 
+@Component({
+	selector: 'collection-dialog',
+	templateUrl: 'collection-dialog.component.html',
+})
+export class CollectionDialogComponent {
+	@ViewChild('collectionList') collectionList: MatSelectionList;
 
+	constructor(
+		public dialogRef: MatDialogRef<CollectionDialogComponent>,
+		@Inject(MAT_DIALOG_DATA) public data: CollectionDialogData) { }
 
+	onNoClick(): void {
+		this.dialogRef.close();
+	}
+
+	onOkClick(): void {
+		this.dialogRef.close({ name: this.data.newCollection.name, assets: this.collectionList.selectedOptions.selected.map(option => option.value) })
+	}
+
+}

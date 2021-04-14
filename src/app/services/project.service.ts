@@ -17,10 +17,15 @@ export class ProjectService {
 		return this.http.get<any>('/api/projects/project', { params });
 	}
 
+	saveProject(id: string, project: any) {
+		const params = new HttpParams().set("id", id);
+		return this.http.put<void>('/api/projects/project', project, { params });
+	}
+
 	// Service for creating new project.
 	// Must be logged in.
 	createNewProject(name: string, hasThumbnail: boolean, thumbnailFile: FileInput) {
-		var thumbnailDeats = hasThumbnail ? { name: thumbnailFile.files[0]?.name, size: thumbnailFile.files[0]?.size, type: thumbnailFile.files[0]?.type } : null;
+		let thumbnailDeats = hasThumbnail ? { name: thumbnailFile.files[0]?.name, size: thumbnailFile.files[0]?.size, type: thumbnailFile.files[0]?.type } : undefined;
 		return this.http.put<{ id: string, signedUrl?: string }>('/api/projects/new', { name, hasThumbnail, thumbnailDeats });
 	}
 
