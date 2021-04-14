@@ -50,9 +50,9 @@ export class EditorComponent implements OnInit {
 	myCanvas: ElementRef<HTMLCanvasElement>;
 	// context: CanvasRenderingContext2D;
 	canvas: fabric.Canvas;
-	drag = false;
 	dirty = false;
 	shouldsave = true;
+	expectingNewAssets = false;
 	currentDragAsset: Drawable;
 
 	hasChild = (_: number, node: Drawable | { type: DisplayType, ref: Asset }) =>
@@ -84,6 +84,10 @@ export class EditorComponent implements OnInit {
 					uploadUrls => {
 						console.log(uploadUrls);
 
+						if (uploadUrls.length > 1) {
+							this.expectingNewAssets = true;
+						}
+
 						let uploaded = (new Array<boolean>(uploadUrls.length)).fill(false);
 						uploadUrls.forEach((url, index) => {
 							console.log("Uploading " + event[index].name + " to " + url);
@@ -110,8 +114,12 @@ export class EditorComponent implements OnInit {
 	refreshProject(): void {
 		this.projectService.getProject(this.projectId).subscribe(
 			project => {
+				if (this.expectingNewAssets) {
+					let newAssets = project.assets.filter(newAsset => !this.project.assets.some(oldAsset => oldAsset._id == newAsset._id));
+					this.expectingNewAssets = false;
+				}
+
 				this.project = project;
-				// this.refreshAssets();
 				this.addProjectToCanvas();
 
 				console.log(this.project);
@@ -251,49 +259,6 @@ export class EditorComponent implements OnInit {
 		console.log(this.Drawables);
 		this.canvas.renderAll();
 	}
-
-	// refreshAssets(): void {
-	// 	let assets: SelectableNode[] = [];
-
-	// 	this.project.assets.forEach((asset, index: number) => {
-	// 		// Only list assets which aren't in a collection here
-	// 		if (asset.assetCollection === undefined) {
-	// 			assets.push({
-	// 				name: asset.name,
-	// 				ref: {
-	// 					type: DisplayType.Asset,
-	// 					ref: asset,
-	// 				},
-	// 			});
-	// 		}
-	// 	});
-
-	// 	this.project.assetCollections.forEach((collection, index: number) => {
-	// 		let collectionNode: SelectableNode = {
-	// 			name: collection.name,
-	// 			ref: {
-	// 				type: DisplayType.Collection,
-	// 				ref: collection,
-	// 			},
-	// 			children: [],
-	// 		};
-
-	// 		collection.assets.forEach((assetIndex: number) => {
-	// 			let asset = this.project.assets[assetIndex];
-	// 			collectionNode.children.push({
-	// 				name: asset.name,
-	// 				ref: {
-	// 					type: DisplayType.Asset,
-	// 					ref: asset,
-	// 				},
-	// 			});
-	// 		});
-
-	// 		assets.push(collectionNode);
-	// 	});
-
-	// 	this.dataSource.data = assets;
-	// }
 
 	getDisplayIcon(type: DisplayType): string {
 		switch (type) {
