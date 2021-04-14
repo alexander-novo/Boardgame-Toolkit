@@ -3,6 +3,12 @@ import { FlexAlignStyleBuilder } from '@angular/flex-layout';
 import { ActivatedRoute } from '@angular/router';
 import { ProjectService } from 'src/app/services/project.service';
 
+interface DrawableAsset{
+	asset: any;
+	assetIndex: number;
+	image: HTMLImageElement;
+}
+
 @Component({
 	selector: 'app-editor',
 	templateUrl: './editor.component.html',
@@ -12,6 +18,7 @@ export class EditorComponent implements OnInit {
 
 	projectId: string;
 	project: any;
+	drawableAssets: DrawableAsset[];
 	
 	constructor(
 		private route: ActivatedRoute,
@@ -35,7 +42,6 @@ export class EditorComponent implements OnInit {
 					console.log("Uploading " + event[index].name + " to " + url);
 					this.projectService.uploadAsset(url, event[index]).subscribe(
 						(res) => {
-
 							console.log("Everything's fine?");
 							console.log(res);
 						},
@@ -56,6 +62,12 @@ export class EditorComponent implements OnInit {
 			project => {
 				this.project = project;
 				console.log(this.project);
+				this.drawableAssets = this.project.assets.map((asset, assetIndex) =>{
+					let image = new Image();
+					image.src = asset.url;
+					return {asset, assetIndex, image, }
+				}	
+				)
 				this.drawAll()
 				
 			},
@@ -76,6 +88,7 @@ export class EditorComponent implements OnInit {
 	startX:number=null;
     startY:number=null;
 	inside = false;
+
 	//need function isInside(point) to return true when ever the mouse clicks on a point an image exists in.
 	//
 	
@@ -100,7 +113,7 @@ export class EditorComponent implements OnInit {
 			/*
 			var x = e.pageX - e.target.offsetLeft;
 			var y = e.pageY - e.target.offsetTop;
-			for(var i = 0; i < this.projects.assets.length; i++) {
+			for(var i = this.projects.assets.length-1; i >= 0; i--) {
 			   var asset = this.projects.assets[i];
 			   if (this.isInside({x:x,y:y})) {
 				  this.drag = true;
@@ -109,8 +122,6 @@ export class EditorComponent implements OnInit {
 				  currentDragAsset = asset;
 			   }
 			}*/
-		 
-
     }
 
 	mmEvent(e){
@@ -140,7 +151,6 @@ export class EditorComponent implements OnInit {
 		}
 		/*
 		 if(this.drag){
-			set x to cordinates of mouse click - 
 			var x = e.pageX - e.target.offsetLeft;
 			var y = e.pageY - e.target.offsetTop;
 			var deltaX = x - lastPoint.x;
@@ -149,7 +159,7 @@ export class EditorComponent implements OnInit {
        		currentDragObject.position.y += deltaY;
        		lastPoint.x = x;
        		lastPoint.y = y;
-			this.drawAsset
+			this.drawAsset()
 
 		 }
 		*/
@@ -176,33 +186,46 @@ export class EditorComponent implements OnInit {
 	
 	//draws all assets uploaded.
     private drawAll() {
-		const assets = this.project.assets[0];
 		//set scale for canvas images to half thier size
 		this.context.scale(.5,.5);
 		
 		this.context.clearRect(0,0,this.myCanvas.nativeElement.width,this.myCanvas.nativeElement.height);
-		for(const asset of this.project.assets){
+		for(const asset of this.drawableAssets){
 			this.drawAsset(asset)
 		}
 	}
 	//loads an image and draws it on the canvas
-  	private drawAsset(assets){
+  	private drawAsset(drawable: DrawableAsset){
+		
 		const img = new Image()
 		//impliment x and y positions in middle of img
-		if(assets.position.x == null){
-		assets.position.x = img.width/2;
+
+		if(drawable.asset.position.x == undefined){
+		drawable.asset.postion.x = img.width/2;
 		}
-		if(assets.position.y == null){
-		assets.position.y = img.height/2;
+		if(drawable.asset.position.y == undefined){
+		drawable.asset.position.y = img.height/2;
 		}
 		let context = this.context;
-		img.onload = ()=> {
-		context.canvas.height=img.height;
-		context.canvas.width=img.width;
-		context.drawImage(img,0,0)
+		if(drawable.image.complete) {
+		context.drawImage(drawable.image,0,0);
+		this.drawBoundingBox(drawable);
 		}
-		img.src = assets.url
-		console.log(img);
+	}
+	private getBoundingBox(drawable: DrawableAsset){
+		let x_max: number = drawable.asset.position.x + drawable.image.width;
+		let y_max: number = drawable.asset.position.y + drawable.image.height;
+		let x_min: number = drawable.asset.position.x
+		let y_min: number = drawable.asset.position.y
+
+		return{
+			x_max,x_min,y_max,y_min
+		}
+	}
+	private drawBoundingBox(drawable: DrawableAsset){
+		let {x_min,x_max,y_min,y_max} = this.getBoundingBox(drawable);
+		this.myCanvas.nativeElement.getContext("2d").strokeStyle ="#FF0000"
+        this.myCanvas.nativeElement.getContext("2d").strokeRect(x_min, y_min, x_max-x_min, y_max-y_min);
 	}
 	//private dragAsset(assets){}
 	ngAfterViewInit(): void {
