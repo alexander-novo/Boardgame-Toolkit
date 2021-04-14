@@ -120,96 +120,41 @@ export class EditorComponent implements OnInit {
 	context: CanvasRenderingContext2D;
 	//drag variables
 	drag = false;
-	startX: number = null;
-	startY: number = null;
-	inside = false;
-	lastPoint = {
-		x: 0,
-		y: 0,
-	}
+
 	currentDragAsset: DrawableAsset;
 
 	mdEvent(e) {
-		//persist starting position
-		/*
-		this.startX=e.clientX;
-		this.startY=e.clientY;
-		this.drag=true;
-		*/
 
-		var x = e.pageX;
-		var y = e.pageY;
+		var x = e.offsetX;
+		var y = e.offsetY;
 		for (var i = this.drawableAssets.length - 1; i >= 0; i--) {
 			var asset = this.drawableAssets[i];
 			let box = this.getBoundingBox(asset)
 			if (x >= box.x_min && x <= box.x_max && y >= box.y_min && y <= box.y_max) {
 				this.drag = true;
-				this.lastPoint.x = x;
-				this.lastPoint.y = y;
 				this.currentDragAsset = asset;
+				break;
 			}
 		}
 	}
 
 	mmEvent(e) {
-		/*
-		if(this.drag){
-			//redraw image
-			let base_image = new Image();
-			base_image.src = 'https://ak3.picdn.net/shutterstock/videos/10826363/thumb/1.jpg';
-			let sx = this.startX;
-			let sy = this.startY;
 
-			let canvasTop = this.myCanvas.nativeElement.getBoundingClientRect().top;
-			let canvasLeft = this.myCanvas.nativeElement.getBoundingClientRect().left;
-			let context: CanvasRenderingContext2D = this.myCanvas.nativeElement.getContext("2d");
-
-			base_image.onload = function () {
-				context.canvas.height = base_image.height;
-				context.canvas.width = base_image.width;
-
-				//draw rectangle on canvas
-				let x = sx - canvasLeft;
-				let y = sy - canvasTop;
-				let w = e.clientX - canvasLeft - x;
-				let h = e.clientY - canvasTop - y;
-				context.setLineDash([6]);
-				context.strokeRect(x, y, w, h);
-			}
-		}
-		*/
 
 		if (this.drag) {
 			let currentDragAsset = this.currentDragAsset;
-			var x = e.pageX - e.target.offsetLeft;
-			var y = e.pageY - e.target.offsetTop;
-			var deltaX = x - this.lastPoint.x;
-			var deltaY = y - this.lastPoint.y;
-			currentDragAsset.asset.position.x += deltaX;
-			currentDragAsset.asset.position.y += deltaY;
-			this.lastPoint.x = x;
-			this.lastPoint.y = y;
-			this.drawAsset(currentDragAsset)
+			currentDragAsset.asset.position.x += e.movementX;
+			currentDragAsset.asset.position.y += e.movementY;
+
+			this.drawAll()
 
 		}
 
 	}
 	muEvent(e) {
-		//draw final rectangle on canvas
-		/* DELETE
-		let x = this.startX - this.myCanvas.nativeElement.getBoundingClientRect().left;
-		let y= this.startY- this.myCanvas.nativeElement.getBoundingClientRect().top;
-		let w = e.clientX -this.myCanvas.nativeElement.getBoundingClientRect().left - x;
-		let h = e.clientY -this.myCanvas.nativeElement.getBoundingClientRect().top - y;
-		this.myCanvas.nativeElement.getContext("2d").setLineDash([6]);
-		this.myCanvas.nativeElement.getContext("2d").strokeRect(x, y, w, h);
-		*/
 		this.drag = false;
 
 		this.drag = false;
-		this.lastPoint.x = -1;
-		this.lastPoint.y = -1;
-
 	}
 
 
@@ -221,9 +166,7 @@ export class EditorComponent implements OnInit {
 			return;
 		}
 
-		//set scale for canvas images to half thier size
-		this.context.scale(.5, .5);
-
+		this.context.clearRect(0, 0, this.myCanvas.nativeElement.width, this.myCanvas.nativeElement.height);
 		for (const asset of this.drawableAssets) {
 			this.drawAsset(asset)
 		}
@@ -239,7 +182,7 @@ export class EditorComponent implements OnInit {
 		}
 
 		let context = this.context;
-		this.context.clearRect(drawable.asset.position.x, drawable.asset.position.y, this.myCanvas.nativeElement.width, this.myCanvas.nativeElement.height);
+
 		if (drawable.image.complete) {
 			context.drawImage(drawable.image, drawable.asset.position.x,drawable.asset.position.y);
 			this.drawBoundingBox(drawable);
@@ -260,7 +203,7 @@ export class EditorComponent implements OnInit {
 		this.myCanvas.nativeElement.getContext("2d").strokeStyle = "#FF0000"
 		this.myCanvas.nativeElement.getContext("2d").strokeRect(x_min, y_min, x_max - x_min, y_max - y_min);
 	}
-	//private dragAsset(assets){}
+	
 	ngAfterViewInit(): void {
 		console.log("Got context");
 		this.context = (this.myCanvas.nativeElement as HTMLCanvasElement).getContext('2d');
