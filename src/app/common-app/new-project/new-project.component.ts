@@ -22,7 +22,7 @@ export class NewProjectComponent implements OnInit {
 	}
 
 	onSubmit(): void {
-		const validThumbnail: boolean = this.thumbnailFile.valid;
+		const validThumbnail: boolean = this.thumbnailFile.valid && this.thumbnailFile.value != null && this.thumbnailFile.value.files !== undefined;
 		const thumbnailFile: FileInput = this.thumbnailFile.value;
 		var uploadingUrl: boolean = validThumbnail;
 		this.projectService.createNewProject(this.projName.value, validThumbnail, thumbnailFile).subscribe(

@@ -196,21 +196,38 @@ module.exports.getProject = async (req, res) => {
 		res.status(500).json(err);
 	}
 
+	if (project.owner != req.user.id) {
+		res.status(403).json("You don't have permission for that.");
+		return;
+	}
+
 	res.status(200).json(project);
 }
 
-//lists the assets of a single project.
-module.exports.getAssets = async (req,res) => {
-	try{
-		project = await Project.findById(req.quer.id).lean();
-	} catch(err) {
+module.exports.saveProject = async (req, res) => {
+	let project;
+	try {
+		project = await Project.findById(req.query.id);
+	} catch (err) {
+		console.error("Error loading project from DB:\n" + err);
 		res.status(500).json(err);
+		return;
 	}
 
-	let Assets = [];
-	for (var project of user.projects) {
-		Assets.push({ asset: project.assets });
+	if (project.owner != req.user.id) {
+		res.status(403).json("You don't have permission for that.");
+		return;
 	}
 
-	res.status(200).json(Assets);
+	project.set(req.body);
+
+	try {
+		project.save();
+	} catch (err) {
+		console.error("Error saving project:\n" + stringify(project) + "\nto DB:\n" + err);
+		res.status(500).json(err);
+		return;
+	}
+
+	res.status(200).end();
 }
