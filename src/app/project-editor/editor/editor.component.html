@@ -1,5 +1,4 @@
-
-<mat-sidenav-container (appDropZone)="onFileDrop($event)" autosize>
+<mat-sidenav-container style="height:calc(100% - 64px)" (appDropZone)="onFileDrop($event)" autosize>
 	<mat-sidenav mode="side" opened disableClose>
 		<mat-accordion>
 			<mat-expansion-panel>
@@ -50,7 +49,8 @@
 			</mat-expansion-panel>
 		</mat-accordion>
 	</mat-sidenav>
-	<mat-sidenav-content>
-		<canvas #myCanvas width="900" height="900"(mousedown)="mdEvent($event)" (mouseup)="muEvent($event)" (mousemove)="mmEvent($event)"></canvas>
+	<mat-sidenav-content id="toolkit-canvas-container">
+		<canvas #myCanvas id="toolkit-canvas" (mousedown)="mdEvent($event)" (mouseup)="muEvent($event)"
+			(mousemove)="mmEvent($event)"></canvas>
 	</mat-sidenav-content>
 </mat-sidenav-container>
