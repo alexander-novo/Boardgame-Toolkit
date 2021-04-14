@@ -13,10 +13,12 @@ const ProjectScheme = new Schema({
 		name: { type: String, required: true },
 		url: { type: String, required: true },
 		size: { type: Number, required: true },
-
 		position: {
-			x: { type: Number, required: false},
-			y: { type: Number, required: false},
+			type: {
+				x: { type: Number, required: true },
+				y: { type: Number, required: true },
+			},
+			required: false,
 		},
 	}]
 });
