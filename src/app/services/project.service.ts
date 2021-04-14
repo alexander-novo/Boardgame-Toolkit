@@ -19,6 +19,7 @@ export class ProjectService {
 
 	saveProject(id: string, project: any) {
 		const params = new HttpParams().set("id", id);
+		
 		return this.http.put<void>('/api/projects/project', project, { params });
 	}
 

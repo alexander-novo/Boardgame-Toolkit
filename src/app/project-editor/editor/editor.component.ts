@@ -119,7 +119,8 @@ export class EditorComponent implements OnInit {
 	context: CanvasRenderingContext2D;
 	//drag variables
 	drag = false;
-
+	dirty = false;
+	shouldsave = true;
 	currentDragAsset: DrawableAsset;
 
 	mdEvent(e) {
@@ -141,12 +142,12 @@ export class EditorComponent implements OnInit {
 
 
 		if (this.drag) {
+			this.dirty = true;
+			this.shouldsave= false;
 			let currentDragAsset = this.currentDragAsset;
 			currentDragAsset.asset.position.x += e.movementX;
 			currentDragAsset.asset.position.y += e.movementY;
-
 			this.drawAll()
-
 		}
 
 	}
@@ -154,6 +155,7 @@ export class EditorComponent implements OnInit {
 		this.drag = false;
 
 		this.drag = false;
+		this.shouldsave = true;
 	}
 
 
@@ -208,6 +210,13 @@ export class EditorComponent implements OnInit {
 		canvas.height = canvas.offsetHeight;
 		this.context = canvas.getContext('2d');
 		this.drawAll();
+		setInterval(()=>{
+			if(this.dirty && this.shouldsave){
+				this.projectService.saveProject(this.projectId, this.project).subscribe()
+				this.project.__v++;
+				this.dirty = false;
+			}
+		},5000)
 	}
 
 	refreshAssets(): void {
@@ -300,6 +309,7 @@ export class EditorComponent implements OnInit {
 					},
 					() => { }
 				);
+				project.__v++;
 			}
 		});
 	}
