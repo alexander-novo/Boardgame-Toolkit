@@ -162,11 +162,12 @@ export class EditorComponent implements OnInit {
 		if (!this.context || !this.project) {
 			return;
 		}
-
 		this.context.clearRect(0, 0, this.myCanvas.nativeElement.width, this.myCanvas.nativeElement.height);
+		this.context.scale(.5,.5);
 		for (const asset of this.drawableAssets) {
 			this.drawAsset(asset)
 		}
+		this.context.scale(2,2);
 	}
 	//loads an image and draws it on the canvas
 	private drawAsset(drawable: DrawableAsset) {
@@ -181,13 +182,13 @@ export class EditorComponent implements OnInit {
 		let context = this.context;
 
 		if (drawable.image.complete) {
-			context.drawImage(drawable.image, drawable.asset.position.x, drawable.asset.position.y);
+			context.drawImage(drawable.image, drawable.asset.position.x*2, drawable.asset.position.y*2);
 			this.drawBoundingBox(drawable);
 		}
 	}
 	private getBoundingBox(drawable: DrawableAsset) {
-		let x_max: number = drawable.asset.position.x + drawable.image.width;
-		let y_max: number = drawable.asset.position.y + drawable.image.height;
+		let x_max: number = drawable.asset.position.x + drawable.image.width*.5;
+		let y_max: number = drawable.asset.position.y + drawable.image.height*.5;
 		let x_min: number = drawable.asset.position.x
 		let y_min: number = drawable.asset.position.y
 
@@ -198,7 +199,7 @@ export class EditorComponent implements OnInit {
 	private drawBoundingBox(drawable: DrawableAsset) {
 		let { x_min, x_max, y_min, y_max } = this.getBoundingBox(drawable);
 		this.myCanvas.nativeElement.getContext("2d").strokeStyle = "#FF0000"
-		this.myCanvas.nativeElement.getContext("2d").strokeRect(x_min, y_min, x_max - x_min, y_max - y_min);
+		this.myCanvas.nativeElement.getContext("2d").strokeRect(x_min*2, y_min*2, (x_max - x_min)*2, (y_max - y_min)*2);
 	}
 	
 	ngAfterViewInit(): void {
