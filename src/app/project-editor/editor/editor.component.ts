@@ -114,8 +114,7 @@ export class EditorComponent implements OnInit {
 		);
 	}
 
-	@ViewChild('myCanvas', { static: false })
-
+	@ViewChild('myCanvas')
 	myCanvas: ElementRef<HTMLCanvasElement>;
 	context: CanvasRenderingContext2D;
 	//drag variables
@@ -216,8 +215,6 @@ export class EditorComponent implements OnInit {
 	//draws all assets uploaded.
 	private drawAll() {
 		if (!this.context || !this.project) {
-			console.log("Tried to draw, but no context/project:");
-			console.log(this.context);
 			return;
 		}
 
@@ -241,7 +238,7 @@ export class EditorComponent implements OnInit {
 		let context = this.context;
 		this.context.clearRect(drawable.asset.position.x, drawable.asset.position.y, this.myCanvas.nativeElement.width, this.myCanvas.nativeElement.height);
 		if (drawable.image.complete) {
-			context.drawImage(drawable.image, drawable.asset.position.x,drawable.asset.position.y);
+			context.drawImage(drawable.image, drawable.asset.position.x, drawable.asset.position.y);
 			this.drawBoundingBox(drawable);
 		}
 	}
@@ -262,8 +259,10 @@ export class EditorComponent implements OnInit {
 	}
 	//private dragAsset(assets){}
 	ngAfterViewInit(): void {
-		console.log("Got context");
-		this.context = (this.myCanvas.nativeElement as HTMLCanvasElement).getContext('2d');
+		let canvas = (this.myCanvas.nativeElement as HTMLCanvasElement);
+		canvas.width = canvas.offsetWidth;
+		canvas.height = canvas.offsetHeight;
+		this.context = canvas.getContext('2d');
 		this.drawAll();
 	}
 
