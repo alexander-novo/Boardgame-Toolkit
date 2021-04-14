@@ -123,44 +123,37 @@ export class EditorComponent implements OnInit {
 	startX: number = null;
 	startY: number = null;
 	inside = false;
-
-	//need function isInside(point) to return true when ever the mouse clicks on a point an image exists in.
-	//
-
-
-	// used to calc canvas position relative to window
-	private reOffset() {
-		var BB = this.myCanvas.nativeElement.getBoundingClientRect();
-		var offsetX = BB.left;
-		var offsetY = BB.top;
+	lastPoint = {
+		x: 0,
+		y: 0,
 	}
-	// save relevant information about shapes drawn on the canvas ???
-	shapes = [];
-	//hold index of shape being dragged. ???
-	selectedShapeIndex;
+	currentDragAsset: DrawableAsset;
 
 	mdEvent(e) {
 		//persist starting position
-		this.startX = e.clientX;
-		this.startY = e.clientY;
-		this.drag = true;
-
 		/*
-		var x = e.pageX - e.target.offsetLeft;
-		var y = e.pageY - e.target.offsetTop;
-		for(var i = this.projects.assets.length-1; i >= 0; i--) {
-		   var asset = this.projects.assets[i];
-		   if (this.isInside({x:x,y:y})) {
-			  this.drag = true;
-			  lastPoint.x = x;
-			  lastPoint.y = y;
-			  currentDragAsset = asset;
-		   }
-		}*/
+		this.startX=e.clientX;
+		this.startY=e.clientY;
+		this.drag=true;
+		*/
+
+		var x = e.pageX;
+		var y = e.pageY;
+		for (var i = this.drawableAssets.length - 1; i >= 0; i--) {
+			var asset = this.drawableAssets[i];
+			let box = this.getBoundingBox(asset)
+			if (x >= box.x_min && x <= box.x_max && y >= box.y_min && y <= box.y_max) {
+				this.drag = true;
+				this.lastPoint.x = x;
+				this.lastPoint.y = y;
+				this.currentDragAsset = asset;
+			}
+		}
 	}
 
 	mmEvent(e) {
-		if (this.drag) {
+		/*
+		if(this.drag){
 			//redraw image
 			let base_image = new Image();
 			base_image.src = 'https://ak3.picdn.net/shutterstock/videos/10826363/thumb/1.jpg';
@@ -184,37 +177,38 @@ export class EditorComponent implements OnInit {
 				context.strokeRect(x, y, w, h);
 			}
 		}
-		/*
-		 if(this.drag){
+		*/
+
+		if (this.drag) {
+			let currentDragAsset = this.currentDragAsset;
 			var x = e.pageX - e.target.offsetLeft;
 			var y = e.pageY - e.target.offsetTop;
-			var deltaX = x - lastPoint.x;
-					var deltaY = y - lastPoint.y;
-					currentDragObject.position.x += deltaX;
-					currentDragObject.position.y += deltaY;
-					lastPoint.x = x;
-					lastPoint.y = y;
-			this.drawAsset()
+			var deltaX = x - this.lastPoint.x;
+			var deltaY = y - this.lastPoint.y;
+			currentDragAsset.asset.position.x += deltaX;
+			currentDragAsset.asset.position.y += deltaY;
+			this.lastPoint.x = x;
+			this.lastPoint.y = y;
+			this.drawAsset(currentDragAsset)
 
-		 }
-		*/
+		}
+
 	}
 	muEvent(e) {
 		//draw final rectangle on canvas
+		/* DELETE
 		let x = this.startX - this.myCanvas.nativeElement.getBoundingClientRect().left;
-		let y = this.startY - this.myCanvas.nativeElement.getBoundingClientRect().top;
-		let w = e.clientX - this.myCanvas.nativeElement.getBoundingClientRect().left - x;
-		let h = e.clientY - this.myCanvas.nativeElement.getBoundingClientRect().top - y;
+		let y= this.startY- this.myCanvas.nativeElement.getBoundingClientRect().top;
+		let w = e.clientX -this.myCanvas.nativeElement.getBoundingClientRect().left - x;
+		let h = e.clientY -this.myCanvas.nativeElement.getBoundingClientRect().top - y;
 		this.myCanvas.nativeElement.getContext("2d").setLineDash([6]);
 		this.myCanvas.nativeElement.getContext("2d").strokeRect(x, y, w, h);
+		*/
+		this.drag = false;
 
 		this.drag = false;
-		/*
-			this.drag = false;
-					lastPoint.x = -1;
-					lastPoint.y = -1;
-		
-		*/
+		this.lastPoint.x = -1;
+		this.lastPoint.y = -1;
 
 	}
 
@@ -230,7 +224,6 @@ export class EditorComponent implements OnInit {
 		//set scale for canvas images to half thier size
 		this.context.scale(.5, .5);
 
-		this.context.clearRect(0, 0, this.myCanvas.nativeElement.width, this.myCanvas.nativeElement.height);
 		for (const asset of this.drawableAssets) {
 			this.drawAsset(asset)
 		}
@@ -246,8 +239,9 @@ export class EditorComponent implements OnInit {
 		}
 
 		let context = this.context;
+		this.context.clearRect(drawable.asset.position.x, drawable.asset.position.y, this.myCanvas.nativeElement.width, this.myCanvas.nativeElement.height);
 		if (drawable.image.complete) {
-			context.drawImage(drawable.image, 0, 0);
+			context.drawImage(drawable.image, drawable.asset.position.x,drawable.asset.position.y);
 			this.drawBoundingBox(drawable);
 		}
 	}
@@ -261,13 +255,11 @@ export class EditorComponent implements OnInit {
 			x_max, x_min, y_max, y_min
 		}
 	}
-
 	private drawBoundingBox(drawable: DrawableAsset) {
 		let { x_min, x_max, y_min, y_max } = this.getBoundingBox(drawable);
 		this.myCanvas.nativeElement.getContext("2d").strokeStyle = "#FF0000"
 		this.myCanvas.nativeElement.getContext("2d").strokeRect(x_min, y_min, x_max - x_min, y_max - y_min);
 	}
-
 	//private dragAsset(assets){}
 	ngAfterViewInit(): void {
 		console.log("Got context");
