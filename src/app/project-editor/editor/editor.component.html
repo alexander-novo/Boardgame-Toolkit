@@ -49,6 +49,10 @@
 				</button>
 			</mat-expansion-panel>
 		</mat-accordion>
+		<button mat-button (click)="rightNav.toggle()">Toggle Sidenav</button>
+	</mat-sidenav>
+	<mat-sidenav #rightNav mode="over" position=end>
+		Test
 	</mat-sidenav>
 	<mat-sidenav-content id="toolkit-canvas-container">
 		<canvas #myCanvas id="toolkit-canvas"></canvas>

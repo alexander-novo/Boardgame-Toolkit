@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { FileInput } from 'ngx-material-file-input';
 import { RegisterService } from './register.service';
 
-export class Asset {
+export interface Asset {
 	_id: string;
 	name: string;
 	url: string;
@@ -12,10 +12,15 @@ export class Asset {
 		x: number;
 		y: number;
 	};
+	scale?: {
+		x: number;
+		y: number;
+	};
+	angle: number;
 	assetCollection?: number;
 }
 
-export class AssetCollection {
+export interface AssetCollection {
 	_id: string;
 	name: string;
 	assets: number[];
@@ -23,6 +28,11 @@ export class AssetCollection {
 		x: number;
 		y: number;
 	};
+	scale?: {
+		x: number;
+		y: number;
+	};
+	angle: number;
 }
 
 export class Project {
