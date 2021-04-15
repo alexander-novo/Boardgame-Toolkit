@@ -13,7 +13,7 @@
 				Select assets to add to collection
 			</mat-panel-description>
 		</mat-expansion-panel-header>
-		<mat-selection-list #collectionList>
+		<mat-selection-list #collectionList [ngModel] = "data.defaultSelection">
 			<mat-list-option *ngFor="let asset of data.assets" [value]="asset.index">
 				{{asset.asset.name}}
 			</mat-list-option>

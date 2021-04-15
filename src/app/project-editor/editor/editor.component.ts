@@ -121,18 +121,20 @@ export class EditorComponent implements OnInit {
 	refreshProject(): void {
 		this.projectService.getProject(this.projectId).subscribe(
 			project => {
+				
+				console.log("afer dialog box");
+
+				let oldProject = this.project;
+				this.project = project;
+				this.addProjectToCanvas();
+
 				if (this.expectingNewAssets) {
 					//array of new assets greater than 1
-					let assets = project.assets.map((asset,index) => ({asset,index})).filter(({asset,index}) => !this.project.assets.some(oldAsset => oldAsset._id == asset._id));
+					let assets = project.assets.map((asset,index) => ({asset,index})).filter(({asset,index}) => !oldProject.assets.some(oldAsset => oldAsset._id == asset._id));
 					this.newCollection(assets.map(({asset,index}) => index))
 					console.log("expecting to opendialog box");
 					this.expectingNewAssets = false;
 				}
-				console.log("afer dialog box");
-
-				this.project = project;
-				this.addProjectToCanvas();
-
 				console.log(this.project);
 			},
 			err => {
@@ -245,7 +247,7 @@ export class EditorComponent implements OnInit {
 		}
 	}
 
-	newCollection(defaultSelections: number[]): void {
+	newCollection(defaultSelection: number[]): void {
 		let newCollectionName: string = '';
 	
 		const dialogRef = this.dialog.open(CollectionDialogComponent, {
@@ -256,7 +258,7 @@ export class EditorComponent implements OnInit {
 					name: newCollectionName,
 					assets: [],
 				},
-				defaultSelections,
+				defaultSelection,
 				assets: this.project.assets.filter(asset => asset.assetCollection === undefined).map((asset, index) => { return { asset, index } }),
 			}
 		});
@@ -267,7 +269,8 @@ export class EditorComponent implements OnInit {
 				for (let index of newCollection.assets) {
 					this.project.assets[index].assetCollection = this.project.assetCollections.length - 1;
 				}
-
+				
+				this.addProjectToCanvas()
 				this.projectService.saveProject(this.projectId, this.project).subscribe(
 					() => {
 						this.snackBar.open("Project Saved");
@@ -291,8 +294,8 @@ export class EditorComponent implements OnInit {
 
 		if (drawable.ref.scale === undefined) {
 			drawable.ref.scale = {
-				x: 0,
-				y: 0
+				x: 1,
+				y: 1,
 			}
 		}
 
@@ -350,7 +353,7 @@ export class CollectionDialogComponent{
 		@Inject(MAT_DIALOG_DATA) public data: CollectionDialogData) { }
 
 	ngAfterViewInit(){
-		this.collectionList.selectedOptions.select(...this.collectionList.options.filter(option => this.data.defaultSelection.includes(option.value)))
+		console.log(this.data);
 	};
 	
 
