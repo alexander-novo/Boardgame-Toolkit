@@ -7,6 +7,7 @@ import { NestedTreeControl } from '@angular/cdk/tree';
 import { MatTreeNestedDataSource } from '@angular/material/tree';
 import { ElementRef } from '@angular/core';
 import { fabric } from "fabric";
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 enum DisplayType {
 	Asset, Collection
@@ -54,6 +55,7 @@ export class EditorComponent implements OnInit {
 	shouldsave = true;
 	expectingNewAssets = false;
 	currentDragAsset: Drawable;
+	selectedNonDrawable = false;
 
 	hasChild = (_: number, node: Drawable | { type: DisplayType, ref: Asset }) =>
 		node.type == DisplayType.Collection &&
@@ -63,6 +65,7 @@ export class EditorComponent implements OnInit {
 		private route: ActivatedRoute,
 		private projectService: ProjectService,
 		private dialog: MatDialog,
+		private snackBar: MatSnackBar
 	) {
 		this.dataSource.data = [];
 	}
@@ -80,6 +83,7 @@ export class EditorComponent implements OnInit {
 		// Upload images to new asset urls, then pull project down from server
 		this.projectService.saveProject(this.projectId, this.project).subscribe(
 			() => {
+				this.snackBar.open("Project Saved");
 				this.projectService.createNewAssets(this.projectId, event).subscribe(
 					uploadUrls => {
 						console.log(uploadUrls);
@@ -131,22 +135,6 @@ export class EditorComponent implements OnInit {
 		);
 	}
 
-	private getBoundingBox(drawable: Drawable) {
-		let x_max: number = drawable.ref.position.x + drawable.image.width * .5;
-		let y_max: number = drawable.ref.position.y + drawable.image.height * .5;
-		let x_min: number = drawable.ref.position.x
-		let y_min: number = drawable.ref.position.y
-
-		return {
-			x_max, x_min, y_max, y_min
-		}
-	}
-	private drawBoundingBox(drawable: Drawable) {
-		let { x_min, x_max, y_min, y_max } = this.getBoundingBox(drawable);
-		this.myCanvas.nativeElement.getContext("2d").strokeStyle = "#00FF00"
-		this.myCanvas.nativeElement.getContext("2d").strokeRect(x_min * 2, y_min * 2, (x_max - x_min) * 2, (y_max - y_min) * 2);
-	}
-
 	ngAfterViewInit(): void {
 		// Make canvas pixel size the same as it actually is on the DOM (css set to 100%)
 		let canvas = this.myCanvas.nativeElement;
@@ -154,23 +142,27 @@ export class EditorComponent implements OnInit {
 		canvas.height = canvas.offsetHeight;
 
 		fabric.Object.prototype.borderColor = 'LimeGreen';
-		fabric.Object.prototype.cornerColor = 'LimeGreen';
+		fabric.Object.prototype.cornerColor = 'black';
 		fabric.Object.prototype.borderScaleFactor = 2;
 		fabric.Object.prototype.borderDashArray = [5, 5];
 		this.canvas = new fabric.Canvas(canvas);
 
-		this.canvas.on('object:selected', (e) => {
-			console.log("Selected element!")
-			this.selectedElement = Array.from(this.Drawables.values()).find(drawable => drawable.image == e.target);
-			console.log(this.selectedElement);
-		})
+		this.canvas.on('selection:cleared', e => {
+			if (!this.selectedNonDrawable) {
+				this.selectedElement = null;
+			}
+			this.selectedNonDrawable = false;
+		});
 
 		this.addProjectToCanvas();
 
 		// Auto save every 5 seconds if the project is dirty
 		setInterval(() => {
 			if (this.dirty && this.shouldsave) {
-				this.projectService.saveProject(this.projectId, this.project).subscribe();
+				console.log(this.project);
+				this.projectService.saveProject(this.projectId, this.project).subscribe(
+					() => { this.snackBar.open("Project Saved", undefined, { duration: 1000 }); }
+				);
 				this.project.__v++;
 				this.dirty = false;
 			}
@@ -187,13 +179,6 @@ export class EditorComponent implements OnInit {
 		this.Drawables = new Map(this.project.assets
 			.filter(asset => asset.assetCollection === undefined)
 			.map((asset): Drawable => {
-				if (asset.position === undefined) {
-					asset.position = {
-						x: 0,
-						y: 0
-					}
-				}
-
 				let re: Drawable = {
 					image: null,
 					ref: asset,
@@ -201,30 +186,12 @@ export class EditorComponent implements OnInit {
 					id: asset._id,
 				};
 
-				fabric.Image.fromURL(asset.url, img => {
-					re.image = img;
-					img.on('selected', e => {
-						console.log("Selected drawable");
-						this.selectedElement = re;
-						console.log(this.selectedElement);
-					});
-					this.canvas.add(img);
-				}, {
-					left: asset.position.x,
-					top: asset.position.y,
-				});
+				this.loadDrawableImage(re, asset.url);
 
 				return re;
 			}).concat(this.project.assetCollections
 				.filter(collection => collection.assets.length > 0)
 				.map((collection): Drawable => {
-					if (collection.position === undefined) {
-						collection.position = {
-							x: 0,
-							y: 0
-						}
-					}
-
 					let re: Drawable = {
 						image: null,
 						ref: collection,
@@ -232,18 +199,7 @@ export class EditorComponent implements OnInit {
 						id: collection._id,
 					};
 
-					fabric.Image.fromURL(this.project.assets[collection.assets[0]].url, img => {
-						re.image = img;
-						img.on('selected', e => {
-							console.log("Selected drawable");
-							this.selectedElement = re;
-							console.log(this.selectedElement);
-						});
-						this.canvas.add(img);
-					}, {
-						left: collection.position.x,
-						top: collection.position.y,
-					});
+					this.loadDrawableImage(re, this.project.assets[collection.assets[0]].url);
 
 					return re;
 				})).map(drawable => [
@@ -271,7 +227,13 @@ export class EditorComponent implements OnInit {
 
 	select(item: Drawable | { type: DisplayType, ref: Asset }): void {
 		if ("image" in item) {
+			this.selectedNonDrawable = false;
 			this.canvas.setActiveObject(item.image);
+			this.canvas.renderAll();
+		} else {
+			this.selectedNonDrawable = true;
+			this.canvas.discardActiveObject();
+			this.selectedNonDrawable = false;
 			this.canvas.renderAll();
 		}
 	}
@@ -289,24 +251,76 @@ export class EditorComponent implements OnInit {
 			}
 		});
 
-		let project = this.project;
-		let projectService = this.projectService;
 		dialogRef.afterClosed().subscribe(newCollection => {
 			if (newCollection !== undefined) {
-				project.assetCollections.push(newCollection);
+				this.project.assetCollections.push(newCollection);
 				for (let index of newCollection.assets) {
-					project.assets[index].assetCollection = project.assetCollections.length - 1;
+					this.project.assets[index].assetCollection = this.project.assetCollections.length - 1;
 				}
 
-				// this.refreshAssets();
-				projectService.saveProject(this.projectId, project).subscribe(
-					() => { },
+				this.projectService.saveProject(this.projectId, this.project).subscribe(
+					() => {
+						this.snackBar.open("Project Saved");
+					},
 					err => {
 						console.error(err);
 					}
 				);
-				project.__v++;
+				this.project.__v++;
 			}
+		});
+	}
+
+	loadDrawableImage(drawable: Drawable, url: string): void {
+		if (drawable.ref.position === undefined) {
+			drawable.ref.position = {
+				x: 0,
+				y: 0
+			}
+		}
+
+		if (drawable.ref.scale === undefined) {
+			drawable.ref.scale = {
+				x: 0,
+				y: 0
+			}
+		}
+
+		drawable.ref.angle = drawable.ref.angle || 0;
+
+		fabric.Image.fromURL(url, img => {
+			drawable.image = img;
+
+			this.addDrawableEvents(drawable);
+			this.canvas.add(img);
+		}, {
+			left: drawable.ref.position.x,
+			top: drawable.ref.position.y,
+			scaleX: drawable.ref.scale.x,
+			scaleY: drawable.ref.scale.y,
+			angle: drawable.ref.angle,
+		});
+	}
+
+	addDrawableEvents(drawable: Drawable): void {
+		drawable.image.on('selected', e => {
+			console.log("Selected drawable");
+			this.selectedElement = drawable;
+			console.log(this.selectedElement);
+		});
+
+		drawable.image.on('modified', e => {
+			drawable.ref.position = {
+				x: drawable.image.left,
+				y: drawable.image.top,
+			};
+			drawable.ref.scale = {
+				x: drawable.image.scaleX,
+				y: drawable.image.scaleY,
+			};
+			drawable.ref.angle = drawable.image.angle;
+
+			this.dirty = true;
 		});
 	}
 

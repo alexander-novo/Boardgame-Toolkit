@@ -20,6 +20,18 @@ const ProjectScheme = new Schema({
 			},
 			required: false,
 		},
+		scale: {
+			type: {
+				x: { type: Number, required: true },
+				y: { type: Number, required: true },
+			},
+			required: false,
+		},
+		angle: {
+			type: Number,
+			required: true,
+			default: 0,
+		},
 		assetCollection: { type: Number, required: false },
 	}],
 	assetCollections: [{
@@ -31,7 +43,19 @@ const ProjectScheme = new Schema({
 				y: { type: Number, required: true },
 			},
 			required: false,
-		}
+		},
+		scale: {
+			type: {
+				x: { type: Number, required: true },
+				y: { type: Number, required: true },
+			},
+			required: false,
+		},
+		angle: {
+			type: Number,
+			required: true,
+			default: 0,
+		},
 	}]
 });
 
