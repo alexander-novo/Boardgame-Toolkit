@@ -8,6 +8,7 @@ import { MatTreeNestedDataSource } from '@angular/material/tree';
 import { ElementRef } from '@angular/core';
 import { fabric } from "fabric";
 
+
 enum DisplayType {
 	Asset, Collection
 }
@@ -18,6 +19,7 @@ export class CollectionDialogData {
 		assets: Array<number>,
 	};
 	assets: Array<{ asset: Asset, index: number }>;
+	defaultSelection: Array<number>;
 }
 
 interface Drawable {
@@ -86,8 +88,8 @@ export class EditorComponent implements OnInit {
 
 						if (uploadUrls.length > 1) {
 							this.expectingNewAssets = true;
+							console.log("exepcting collection of assets")
 						}
-
 						let uploaded = (new Array<boolean>(uploadUrls.length)).fill(false);
 						uploadUrls.forEach((url, index) => {
 							console.log("Uploading " + event[index].name + " to " + url);
@@ -111,13 +113,18 @@ export class EditorComponent implements OnInit {
 		)
 	}
 
+
 	refreshProject(): void {
 		this.projectService.getProject(this.projectId).subscribe(
 			project => {
 				if (this.expectingNewAssets) {
-					let newAssets = project.assets.filter(newAsset => !this.project.assets.some(oldAsset => oldAsset._id == newAsset._id));
+					//array of new assets greater than 1
+					let assets = project.assets.map((asset,index) => ({asset,index})).filter(({asset,index}) => !this.project.assets.some(oldAsset => oldAsset._id == asset._id));
+					this.newCollection(assets.map(({asset,index}) => index))
+					console.log("expecting to opendialog box");
 					this.expectingNewAssets = false;
 				}
+				console.log("afer dialog box");
 
 				this.project = project;
 				this.addProjectToCanvas();
@@ -129,22 +136,6 @@ export class EditorComponent implements OnInit {
 			},
 			() => { }
 		);
-	}
-
-	private getBoundingBox(drawable: Drawable) {
-		let x_max: number = drawable.ref.position.x + drawable.image.width * .5;
-		let y_max: number = drawable.ref.position.y + drawable.image.height * .5;
-		let x_min: number = drawable.ref.position.x
-		let y_min: number = drawable.ref.position.y
-
-		return {
-			x_max, x_min, y_max, y_min
-		}
-	}
-	private drawBoundingBox(drawable: Drawable) {
-		let { x_min, x_max, y_min, y_max } = this.getBoundingBox(drawable);
-		this.myCanvas.nativeElement.getContext("2d").strokeStyle = "#00FF00"
-		this.myCanvas.nativeElement.getContext("2d").strokeRect(x_min * 2, y_min * 2, (x_max - x_min) * 2, (y_max - y_min) * 2);
 	}
 
 	ngAfterViewInit(): void {
@@ -276,15 +267,18 @@ export class EditorComponent implements OnInit {
 		}
 	}
 
-	newCollection(): void {
+	newCollection(defaultSelections: number[]): void {
 		let newCollectionName: string = '';
+	
 		const dialogRef = this.dialog.open(CollectionDialogComponent, {
+
 			width: '400px',
 			data: {
 				newCollection: {
 					name: newCollectionName,
 					assets: [],
 				},
+				defaultSelections,
 				assets: this.project.assets.filter(asset => asset.assetCollection === undefined).map((asset, index) => { return { asset, index } }),
 			}
 		});
@@ -316,12 +310,19 @@ export class EditorComponent implements OnInit {
 	selector: 'collection-dialog',
 	templateUrl: 'collection-dialog.component.html',
 })
-export class CollectionDialogComponent {
+export class CollectionDialogComponent{
+	defaultSelection: Asset[];
 	@ViewChild('collectionList') collectionList: MatSelectionList;
+	
 
 	constructor(
 		public dialogRef: MatDialogRef<CollectionDialogComponent>,
 		@Inject(MAT_DIALOG_DATA) public data: CollectionDialogData) { }
+
+	ngAfterViewInit(){
+		this.collectionList.selectedOptions.select(...this.collectionList.options.filter(option => this.data.defaultSelection.includes(option.value)))
+	};
+	
 
 	onNoClick(): void {
 		this.dialogRef.close();
@@ -330,5 +331,5 @@ export class CollectionDialogComponent {
 	onOkClick(): void {
 		this.dialogRef.close({ name: this.data.newCollection.name, assets: this.collectionList.selectedOptions.selected.map(option => option.value) })
 	}
-
+	
 }
