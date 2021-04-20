@@ -13,11 +13,50 @@ const ProjectScheme = new Schema({
 		name: { type: String, required: true },
 		url: { type: String, required: true },
 		size: { type: Number, required: true },
+		position: {
+			type: {
+				x: { type: Number, required: true },
+				y: { type: Number, required: true },
+			},
+			required: false,
+		},
+		scale: {
+			type: {
+				x: { type: Number, required: true },
+				y: { type: Number, required: true },
+			},
+			required: false,
+		},
+		angle: {
+			type: Number,
+			required: true,
+			default: 0,
+		},
 		assetCollection: { type: Number, required: false },
 	}],
 	assetCollections: [{
 		name: { type: String, required: true },
-		assets: [{ type: Number, required: true }]
+		assets: [{ type: Number, required: true }],
+		url: { type: String, required: false },
+		position: {
+			type: {
+				x: { type: Number, required: true },
+				y: { type: Number, required: true },
+			},
+			required: false,
+		},
+		scale: {
+			type: {
+				x: { type: Number, required: true },
+				y: { type: Number, required: true },
+			},
+			required: false,
+		},
+		angle: {
+			type: Number,
+			required: true,
+			default: 0,
+		},
 	}]
 });
 
