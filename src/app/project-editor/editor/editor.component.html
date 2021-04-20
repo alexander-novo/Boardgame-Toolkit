@@ -1,4 +1,4 @@
-<mat-sidenav-container style="height:calc(100% - 64px)" (appDropZone)="onFileDrop($event)" autosize>
+<mat-sidenav-container style="height:calc(100% - 64px)" (appDropZone)="onFileDrop($event)" autosize hasBackdrop="false">
 	<mat-sidenav mode="side" opened disableClose>
 		<mat-accordion>
 			<mat-expansion-panel>
@@ -49,10 +49,40 @@
 				</button>
 			</mat-expansion-panel>
 		</mat-accordion>
-		<button mat-button (click)="rightNav.toggle()">Toggle Sidenav</button>
 	</mat-sidenav>
-	<mat-sidenav #rightNav mode="over" position=end>
-		Test
+	<mat-sidenav #rightNav mode="over" position=end disableClose>
+		<mat-accordion multi>
+			<mat-expansion-panel expanded *ngIf="!!selectedElement">
+				<mat-expansion-panel-header>
+					<mat-panel-title>
+						{{selectedElement.type}} Info
+					</mat-panel-title>
+					<mat-panel-description>
+						{{selectedElement.ref.name}}
+					</mat-panel-description>
+				</mat-expansion-panel-header>
+				<mat-form-field>
+					<mat-label>Name</mat-label>
+					<input matInput [(ngModel)]="selectedElement.ref.name">
+				</mat-form-field>
+				<mat-form-field>
+					<mat-label>Angle</mat-label>
+					<input matInput type="number" [(ngModel)]="selectedElement.image.angle"
+						(ngModelChange)="selectedElement.ref.angle = selectedElement.image.angle; canvas.renderAll()">
+				</mat-form-field>
+				<mat-slider min=0 max=360 thumbLabel [(ngModel)]="selectedElement.image.angle"
+					(ngModelChange)="selectedElement.ref.angle = selectedElement.image.angle; canvas.renderAll()">
+				</mat-slider>
+				<mat-form-field>
+					<mat-label>Scale</mat-label>
+					<input matInput type="number" [(ngModel)]="selectedElement.image.scaleX"
+						(ngModelChange)="selectedElement.ref.scale.x = selectedElement.ref.scale.y = selectedElement.image.scaleY = selectedElement.image.scaleX; canvas.renderAll()">
+				</mat-form-field>
+				<mat-slider min=0 max=2 step=.01 thumbLabel [(ngModel)]="selectedElement.image.scaleX"
+					(ngModelChange)="selectedElement.ref.scale.x = selectedElement.ref.scale.y = selectedElement.image.scaleY = selectedElement.image.scaleX; canvas.renderAll()">
+				</mat-slider>
+			</mat-expansion-panel>
+		</mat-accordion>
 	</mat-sidenav>
 	<mat-sidenav-content id="toolkit-canvas-container">
 		<canvas #myCanvas id="toolkit-canvas"></canvas>

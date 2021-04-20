@@ -24,6 +24,7 @@ export interface AssetCollection {
 	_id: string;
 	name: string;
 	assets: number[];
+	url?: string;
 	position?: {
 		x: number;
 		y: number;
@@ -94,5 +95,9 @@ export class ProjectService {
 		const assetDeats = assets.map(function (asset: File) { return { name: asset.name, size: asset.size, type: asset.type } });
 
 		return this.http.put<string[]>('/api/projects/assets/new', { id, assetDeats });
+	}
+
+	addThumbnailToCollection(projectId: string, collectionIndex: number, thumbnailFile: FileInput) {
+		return this.http.put<string>('/api/projects/collection/thumbnail', { id: projectId, collectionIndex, size: thumbnailFile.files[0]?.size, type: thumbnailFile.files[0]?.type });
 	}
 }

@@ -37,6 +37,7 @@ const ProjectScheme = new Schema({
 	assetCollections: [{
 		name: { type: String, required: true },
 		assets: [{ type: Number, required: true }],
+		url: { type: String, required: false },
 		position: {
 			type: {
 				x: { type: Number, required: true },

@@ -8,10 +8,14 @@ import { MatTreeNestedDataSource } from '@angular/material/tree';
 import { ElementRef } from '@angular/core';
 import { fabric } from "fabric";
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatSidenav } from '@angular/material/sidenav';
+import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { FileValidator } from 'ngx-material-file-input';
+import { environment } from 'src/environments/environment';
 
 
 enum DisplayType {
-	Asset, Collection
+	Asset = "Asset", Collection = "Collection"
 }
 
 export class CollectionDialogData {
@@ -36,7 +40,7 @@ interface Drawable {
 	styleUrls: ['./editor.component.scss']
 })
 export class EditorComponent implements OnInit {
-
+	eDisplayType = DisplayType;
 	projectId: string;
 	project: Project;
 	Drawables = new Map<{ type: DisplayType, id: string }, Drawable>();
@@ -58,6 +62,9 @@ export class EditorComponent implements OnInit {
 	expectingNewAssets = false;
 	currentDragAsset: Drawable;
 	selectedNonDrawable = false;
+
+	@ViewChild('rightNav')
+	rightNav: MatSidenav;
 
 	hasChild = (_: number, node: Drawable | { type: DisplayType, ref: Asset }) =>
 		node.type == DisplayType.Collection &&
@@ -85,7 +92,7 @@ export class EditorComponent implements OnInit {
 		// Upload images to new asset urls, then pull project down from server
 		this.projectService.saveProject(this.projectId, this.project).subscribe(
 			() => {
-				this.snackBar.open("Project Saved");
+				this.snackBar.open("Project Saved", undefined, { duration: environment.autoSaveBarDuration });
 				this.projectService.createNewAssets(this.projectId, event).subscribe(
 					uploadUrls => {
 						console.log(uploadUrls);
@@ -121,7 +128,7 @@ export class EditorComponent implements OnInit {
 	refreshProject(): void {
 		this.projectService.getProject(this.projectId).subscribe(
 			project => {
-				
+
 				console.log("afer dialog box");
 
 				let oldProject = this.project;
@@ -130,8 +137,8 @@ export class EditorComponent implements OnInit {
 
 				if (this.expectingNewAssets) {
 					//array of new assets greater than 1
-					let assets = project.assets.map((asset,index) => ({asset,index})).filter(({asset,index}) => !oldProject.assets.some(oldAsset => oldAsset._id == asset._id));
-					this.newCollection(assets.map(({asset,index}) => index))
+					let assets = project.assets.map((asset, index) => ({ asset, index })).filter(({ asset, index }) => !oldProject.assets.some(oldAsset => oldAsset._id == asset._id));
+					this.newCollection(assets.map(({ asset, index }) => index))
 					console.log("expecting to opendialog box");
 					this.expectingNewAssets = false;
 				}
@@ -159,6 +166,7 @@ export class EditorComponent implements OnInit {
 		this.canvas.on('selection:cleared', e => {
 			if (!this.selectedNonDrawable) {
 				this.selectedElement = null;
+				this.rightNav.close();
 			}
 			this.selectedNonDrawable = false;
 		});
@@ -170,12 +178,12 @@ export class EditorComponent implements OnInit {
 			if (this.dirty && this.shouldsave) {
 				console.log(this.project);
 				this.projectService.saveProject(this.projectId, this.project).subscribe(
-					() => { this.snackBar.open("Project Saved", undefined, { duration: 1000 }); }
+					() => { this.snackBar.open("Project Saved", undefined, { duration: environment.autoSaveBarDuration }); }
 				);
 				this.project.__v++;
 				this.dirty = false;
 			}
-		}, 5000)
+		}, environment.autoSaveInterval)
 	}
 
 	addProjectToCanvas(): void {
@@ -208,7 +216,7 @@ export class EditorComponent implements OnInit {
 						id: collection._id,
 					};
 
-					this.loadDrawableImage(re, this.project.assets[collection.assets[0]].url);
+					this.loadDrawableImage(re, collection.url || this.project.assets[collection.assets[0]].url);
 
 					return re;
 				})).map(drawable => [
@@ -249,7 +257,7 @@ export class EditorComponent implements OnInit {
 
 	newCollection(defaultSelection: number[]): void {
 		let newCollectionName: string = '';
-	
+
 		const dialogRef = this.dialog.open(CollectionDialogComponent, {
 
 			width: '400px',
@@ -263,17 +271,28 @@ export class EditorComponent implements OnInit {
 			}
 		});
 
-		dialogRef.afterClosed().subscribe(newCollection => {
+		dialogRef.afterClosed().subscribe(({ newCollection, file }) => {
 			if (newCollection !== undefined) {
 				this.project.assetCollections.push(newCollection);
 				for (let index of newCollection.assets) {
 					this.project.assets[index].assetCollection = this.project.assetCollections.length - 1;
 				}
-				
-				this.addProjectToCanvas()
+
+				this.addProjectToCanvas();
 				this.projectService.saveProject(this.projectId, this.project).subscribe(
 					() => {
-						this.snackBar.open("Project Saved");
+						this.snackBar.open("Project Saved", undefined, { duration: environment.autoSaveBarDuration });
+						if (file != null && file.files !== undefined) {
+							this.projectService.addThumbnailToCollection(this.projectId, this.project.assetCollections.length - 1, file).subscribe(
+								(uploadUrl) => {
+									this.projectService.uploadAsset(uploadUrl, file.files[0]).subscribe(
+										() => {
+											this.refreshProject();
+										}
+									);
+								}
+							);
+						}
 					},
 					err => {
 						console.error(err);
@@ -295,7 +314,7 @@ export class EditorComponent implements OnInit {
 		if (drawable.ref.scale === undefined) {
 			drawable.ref.scale = {
 				x: 1,
-				y: 1,
+				y: 1
 			}
 		}
 
@@ -317,9 +336,9 @@ export class EditorComponent implements OnInit {
 
 	addDrawableEvents(drawable: Drawable): void {
 		drawable.image.on('selected', e => {
-			console.log("Selected drawable");
 			this.selectedElement = drawable;
-			console.log(this.selectedElement);
+
+			this.rightNav.open();
 		});
 
 		drawable.image.on('modified', e => {
@@ -343,26 +362,35 @@ export class EditorComponent implements OnInit {
 	selector: 'collection-dialog',
 	templateUrl: 'collection-dialog.component.html',
 })
-export class CollectionDialogComponent{
+export class CollectionDialogComponent {
 	defaultSelection: Asset[];
 	@ViewChild('collectionList') collectionList: MatSelectionList;
-	
+	newCollectionForm = new FormGroup({
+		name: new FormControl('', [Validators.required, Validators.minLength(4)]),
+		backFile: new FormControl('', [FileValidator.maxContentSize(4000000)]),
+	});
 
 	constructor(
 		public dialogRef: MatDialogRef<CollectionDialogComponent>,
 		@Inject(MAT_DIALOG_DATA) public data: CollectionDialogData) { }
 
-	ngAfterViewInit(){
+	ngAfterViewInit() {
 		console.log(this.data);
-	};
-	
+	}
+
 
 	onNoClick(): void {
 		this.dialogRef.close();
 	}
 
 	onOkClick(): void {
-		this.dialogRef.close({ name: this.data.newCollection.name, assets: this.collectionList.selectedOptions.selected.map(option => option.value) })
+		this.dialogRef.close({
+			newCollection: {
+				name: this.data.newCollection.name,
+				assets: this.collectionList.selectedOptions.selected.map(option => option.value),
+			},
+			file: this.newCollectionForm.get('backFile').value
+		});
 	}
-	
+
 }

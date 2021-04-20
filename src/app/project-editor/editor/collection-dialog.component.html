@@ -1,9 +1,18 @@
 <h1 mat-dialog-title>New Collection</h1>
 <div mat-dialog-content>
-	<mat-form-field>
-		<mat-label>Name</mat-label>
-		<input matInput [(ngModel)]="data.newCollection.name">
-	</mat-form-field>
+	<form [formGroup]="newCollectionForm">
+		<mat-form-field>
+			<mat-label>Name</mat-label>
+			<input required matInput [(ngModel)]="data.newCollection.name" formControlName="name">
+			<mat-error *ngIf="newCollectionForm.get('name').hasError('required')">
+				Collection name is required.
+			</mat-error>
+		</mat-form-field>
+		<mat-form-field>
+			<ngx-mat-file-input placeholder="Back Image" accept="image/*" formControlName="backFile">
+			</ngx-mat-file-input>
+		</mat-form-field>
+	</form>
 	<mat-expansion-panel>
 		<mat-expansion-panel-header>
 			<mat-panel-title>
@@ -13,7 +22,7 @@
 				Select assets to add to collection
 			</mat-panel-description>
 		</mat-expansion-panel-header>
-		<mat-selection-list #collectionList [ngModel] = "data.defaultSelection">
+		<mat-selection-list #collectionList [ngModel]="data.defaultSelection">
 			<mat-list-option *ngFor="let asset of data.assets" [value]="asset.index">
 				{{asset.asset.name}}
 			</mat-list-option>
@@ -22,5 +31,5 @@
 </div>
 <div mat-dialog-actions>
 	<button mat-button (click)="onNoClick()">No Thanks</button>
-	<button mat-button (click)="onOkClick()" cdkFocusInitial>Ok</button>
+	<button mat-button [disabled]="!newCollectionForm.valid" (click)="onOkClick()" cdkFocusInitial>Ok</button>
 </div>
