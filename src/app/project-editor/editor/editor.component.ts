@@ -62,6 +62,7 @@ export class EditorComponent implements OnInit {
 	expectingNewAssets = false;
 	currentDragAsset: Drawable;
 	selectedNonDrawable = false;
+	isDraggingCanvas = false;
 
 	@ViewChild('rightNav')
 	rightNav: MatSidenav;
@@ -92,7 +93,7 @@ export class EditorComponent implements OnInit {
 		// Upload images to new asset urls, then pull project down from server
 		this.projectService.saveProject(this.projectId, this.project).subscribe(
 			() => {
-				this.snackBar.open("Project Saved", undefined, { duration: environment.autoSaveBarDuration });
+				this.snackBar.open("Project Saved", undefined, { duration: environment.editor.autoSaveBarDuration });
 				this.projectService.createNewAssets(this.projectId, event).subscribe(
 					uploadUrls => {
 						console.log(uploadUrls);
@@ -161,15 +162,106 @@ export class EditorComponent implements OnInit {
 		fabric.Object.prototype.cornerColor = 'black';
 		fabric.Object.prototype.borderScaleFactor = 2;
 		fabric.Object.prototype.borderDashArray = [5, 5];
-		this.canvas = new fabric.Canvas(canvas);
+		this.canvas = new fabric.Canvas(canvas, {
+			fireRightClick: true,
+		});
 
-		this.canvas.on('selection:cleared', e => {
+		// Disable context menu
+		fabric.util.addListener(document.getElementsByClassName('upper-canvas')[0] as HTMLElement, 'contextmenu', function (e) {
+			e.preventDefault();
+		});
+
+		this.canvas.on('selection:cleared', opt => {
 			if (!this.selectedNonDrawable) {
 				this.selectedElement = null;
 				this.rightNav.close();
 			}
 			this.selectedNonDrawable = false;
 		});
+
+		this.canvas.on('mouse:wheel', opt => {
+			let e = (opt.e as WheelEvent);
+			let delta = e.deltaY;
+
+			let { maxZoom, minZoom, totalWidth, totalHeight, zoomSpeed } = environment.editor.workspace;
+
+			let zoom = Math.min(Math.max((1 - zoomSpeed) ** delta * this.canvas.getZoom(), minZoom), maxZoom);
+			e.preventDefault();
+			e.stopPropagation();
+
+			this.canvas.zoomToPoint(new fabric.Point(e.offsetX, e.offsetY), zoom);
+
+			let vpt = this.canvas.viewportTransform;
+			if (zoom < Math.min(canvas.width / totalWidth, canvas.height / totalHeight)) {
+				vpt[4] = 0;
+				vpt[5] = 0;
+			} else {
+				if (vpt[4] >= totalWidth * zoom / 2) {
+					vpt[4] = totalWidth * zoom / 2;
+				} else if (vpt[4] < this.canvas.getWidth() - totalWidth * zoom / 2) {
+					vpt[4] = this.canvas.getWidth() - totalHeight * zoom / 2;
+				}
+				if (vpt[5] >= totalHeight * zoom / 2) {
+					vpt[5] = totalHeight * zoom / 2;
+				} else if (vpt[5] < this.canvas.getHeight() - totalHeight * zoom / 2) {
+					vpt[5] = this.canvas.getHeight() - totalHeight * zoom / 2;
+				}
+			}
+		});
+
+		this.canvas.on('mouse:down', opt => {
+			let e = (opt.e as MouseEvent);
+
+			// If right-click
+			if (e.button == 2) {
+				this.isDraggingCanvas = true;
+				this.canvas.selection = false;
+
+				this.canvas.setCursor('grabbing');
+
+				e.preventDefault();
+			}
+		});
+
+		this.canvas.on('mouse:move', opt => {
+			let e = (opt.e as MouseEvent);
+
+			if (this.isDraggingCanvas) {
+				let { totalWidth, totalHeight } = environment.editor.workspace;
+				let zoom = this.canvas.getZoom();
+				let vpt = this.canvas.viewportTransform;
+				if (zoom < Math.min(canvas.width / totalWidth, canvas.height / totalHeight)) {
+					vpt[4] = 0;
+					vpt[5] = 0;
+				} else {
+					vpt[4] += e.movementX;
+					vpt[5] += e.movementY;
+					if (vpt[4] >= totalWidth * zoom / 2) {
+						vpt[4] = totalWidth * zoom / 2;
+					} else if (vpt[4] < this.canvas.getWidth() - totalWidth * zoom / 2) {
+						vpt[4] = this.canvas.getWidth() - totalHeight * zoom / 2;
+					}
+					if (vpt[5] >= totalHeight * zoom / 2) {
+						vpt[5] = totalHeight * zoom / 2;
+					} else if (vpt[5] < this.canvas.getHeight() - totalHeight * zoom / 2) {
+						vpt[5] = this.canvas.getHeight() - totalHeight * zoom / 2;
+					}
+				}
+
+				this.canvas.setViewportTransform(this.canvas.viewportTransform);
+				this.canvas.requestRenderAll();
+			}
+		});
+
+		this.canvas.on('mouse:up', opt => {
+			this.canvas.setViewportTransform(this.canvas.viewportTransform);
+			this.isDraggingCanvas = false;
+			this.canvas.selection = true;
+
+			this.canvas.setCursor('default');
+
+			opt.e.preventDefault();
+		})
 
 		this.addProjectToCanvas();
 
@@ -178,12 +270,12 @@ export class EditorComponent implements OnInit {
 			if (this.dirty && this.shouldsave) {
 				console.log(this.project);
 				this.projectService.saveProject(this.projectId, this.project).subscribe(
-					() => { this.snackBar.open("Project Saved", undefined, { duration: environment.autoSaveBarDuration }); }
+					() => { this.snackBar.open("Project Saved", undefined, { duration: environment.editor.autoSaveBarDuration }); }
 				);
 				this.project.__v++;
 				this.dirty = false;
 			}
-		}, environment.autoSaveInterval)
+		}, environment.editor.autoSaveInterval)
 	}
 
 	addProjectToCanvas(): void {
@@ -193,6 +285,9 @@ export class EditorComponent implements OnInit {
 
 		console.log("Adding assets to canvas...");
 		this.canvas.clear();
+
+		this.drawGridAndBounds();
+
 		this.Drawables = new Map(this.project.assets
 			.filter(asset => asset.assetCollection === undefined)
 			.map((asset): Drawable => {
@@ -231,6 +326,41 @@ export class EditorComponent implements OnInit {
 		console.log("Drawables:");
 		console.log(this.Drawables);
 		this.canvas.renderAll();
+	}
+
+	drawGridAndBounds(): void {
+		let { boundsStrokeWidth, totalHeight, totalWidth, grid } = environment.editor.workspace;
+		// Border around bounds
+		this.canvas.add(new fabric.Rect({
+			selectable: false,
+			evented: false,
+			width: totalWidth - boundsStrokeWidth,
+			height: totalHeight - boundsStrokeWidth,
+			stroke: 'red',
+			strokeWidth: boundsStrokeWidth,
+			fill: '',
+			left: -totalWidth / 2,
+			top: -totalHeight / 2,
+			opacity: 1,
+		}));
+
+		for (let x = 1; x < totalWidth / grid; x++) {
+			this.canvas.add(new fabric.Line([x * grid - totalWidth / 2, -totalHeight / 2, x * grid - totalWidth / 2, totalHeight / 2], {
+				stroke: 'Gainsboro',
+				selectable: false,
+				evented: false,
+				strokeWidth: 1,
+			}));
+		}
+
+		for (let y = 1; y < totalHeight / grid; y++) {
+			this.canvas.add(new fabric.Line([-totalWidth / 2, y * grid - totalHeight / 2, totalWidth / 2, y * grid - totalHeight / 2], {
+				stroke: 'Gainsboro',
+				selectable: false,
+				evented: false,
+				strokeWidth: 1,
+			}));
+		}
 	}
 
 	getDisplayIcon(type: DisplayType): string {
@@ -281,7 +411,7 @@ export class EditorComponent implements OnInit {
 				this.addProjectToCanvas();
 				this.projectService.saveProject(this.projectId, this.project).subscribe(
 					() => {
-						this.snackBar.open("Project Saved", undefined, { duration: environment.autoSaveBarDuration });
+						this.snackBar.open("Project Saved", undefined, { duration: environment.editor.autoSaveBarDuration });
 						if (file != null && file.files !== undefined) {
 							this.projectService.addThumbnailToCollection(this.projectId, this.project.assetCollections.length - 1, file).subscribe(
 								(uploadUrl) => {

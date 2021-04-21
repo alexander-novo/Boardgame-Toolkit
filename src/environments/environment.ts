@@ -4,8 +4,20 @@
 
 export const environment = {
 	production: false,
-	autoSaveBarDuration: 1000,
-	autoSaveInterval: 10000,
+	editor: {
+		autoSaveBarDuration: 1000,
+		autoSaveInterval: 10000,
+		workspace: {
+			totalWidth: 50000,
+			totalHeight: 50000,
+			boundsStrokeWidth: 10,
+			minZoom: .04,
+			maxZoom: 20,
+			grid: 200,
+			zoomSpeed: .0025,
+		}
+	},
+
 };
 
 /*
