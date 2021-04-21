@@ -47,7 +47,12 @@ export class Project {
 	};
 	thumbnail?: string;
 	assets: Asset[];
-	assetCollections: AssetCollection[]
+	assetCollections: AssetCollection[];
+	camera: {
+		x: number;
+		y: number;
+		zoom: number;
+	};
 }
 
 export interface ProjectThumbnail {
