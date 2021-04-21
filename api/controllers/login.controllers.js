@@ -47,6 +47,7 @@ module.exports.personalInfo = (ejwt(EJWT_OPTIONS), async (req, res) => {
 
 	if (user == null) {
 		res.status(404).end();
+		return;
 	}
 
 	// Respond with acquired information

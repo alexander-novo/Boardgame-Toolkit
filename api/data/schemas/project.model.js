@@ -33,6 +33,7 @@ const ProjectScheme = new Schema({
 			default: 0,
 		},
 		assetCollection: { type: Number, required: false },
+		hiddenFromPlayers: { type: Boolean, required: true, default: false },
 	}],
 	assetCollections: [{
 		name: { type: String, required: true },
@@ -57,6 +58,7 @@ const ProjectScheme = new Schema({
 			required: true,
 			default: 0,
 		},
+		hiddenFromPlayers: { type: Boolean, required: true, default: false },
 	}],
 	camera: {
 		x: { type: Number, required: true, default: 0 },

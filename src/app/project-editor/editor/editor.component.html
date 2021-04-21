@@ -63,24 +63,27 @@
 				</mat-expansion-panel-header>
 				<mat-form-field>
 					<mat-label>Name</mat-label>
-					<input matInput [(ngModel)]="selectedElement.ref.name">
+					<input matInput [(ngModel)]="selectedElement.ref.name" (ngModelChange)="dirty = true;">
 				</mat-form-field>
 				<mat-form-field>
 					<mat-label>Angle</mat-label>
 					<input matInput type="number" [(ngModel)]="selectedElement.image.angle"
-						(ngModelChange)="selectedElement.ref.angle = selectedElement.image.angle; canvas.renderAll()">
+						(ngModelChange)="selectedElement.ref.angle = selectedElement.image.angle; canvas.renderAll(); dirty = true;">
 				</mat-form-field>
 				<mat-slider min=0 max=360 thumbLabel [(ngModel)]="selectedElement.image.angle"
-					(ngModelChange)="selectedElement.ref.angle = selectedElement.image.angle; canvas.renderAll()">
+					(ngModelChange)="selectedElement.ref.angle = selectedElement.image.angle; canvas.renderAll(); dirty = true;">
 				</mat-slider>
 				<mat-form-field>
 					<mat-label>Scale</mat-label>
-					<input matInput type="number" [(ngModel)]="selectedElement.image.scaleX"
-						(ngModelChange)="selectedElement.ref.scale.x = selectedElement.ref.scale.y = selectedElement.image.scaleY = selectedElement.image.scaleX; canvas.renderAll()">
+					<input matInput type="number" [(ngModel)]="selectedElement.image.scaleX" step=.01
+						(ngModelChange)="selectedElement.ref.scale.x = selectedElement.ref.scale.y = selectedElement.image.scaleY = selectedElement.image.scaleX; canvas.renderAll(); dirty = true;">
 				</mat-form-field>
 				<mat-slider min=0 max=2 step=.01 thumbLabel [(ngModel)]="selectedElement.image.scaleX"
-					(ngModelChange)="selectedElement.ref.scale.x = selectedElement.ref.scale.y = selectedElement.image.scaleY = selectedElement.image.scaleX; canvas.renderAll()">
+					(ngModelChange)="selectedElement.ref.scale.x = selectedElement.ref.scale.y = selectedElement.image.scaleY = selectedElement.image.scaleX; canvas.renderAll(); dirty = true;">
 				</mat-slider>
+				<mat-checkbox [(ngModel)]="selectedElement.ref.hiddenFromPlayers" (ngModelChange)="dirty = true">
+					Hide from players
+				</mat-checkbox>
 			</mat-expansion-panel>
 		</mat-accordion>
 	</mat-sidenav>
