@@ -207,6 +207,11 @@ export class EditorComponent implements OnInit {
 					vpt[5] = this.canvas.getHeight() - totalHeight * zoom / 2;
 				}
 			}
+
+			this.project.camera.zoom = zoom;
+			this.project.camera.x = vpt[4];
+			this.project.camera.y = vpt[5];
+			this.dirty = true;
 		});
 
 		this.canvas.on('mouse:down', opt => {
@@ -248,6 +253,10 @@ export class EditorComponent implements OnInit {
 					}
 				}
 
+				this.project.camera.x = vpt[4];
+				this.project.camera.y = vpt[5];
+				this.dirty = true;
+
 				this.canvas.setViewportTransform(this.canvas.viewportTransform);
 				this.canvas.requestRenderAll();
 			}
@@ -285,6 +294,11 @@ export class EditorComponent implements OnInit {
 
 		console.log("Adding assets to canvas...");
 		this.canvas.clear();
+
+		this.canvas.setZoom(this.project.camera.zoom);
+		let vpt = this.canvas.viewportTransform;
+		vpt[4] = this.project.camera.x;
+		vpt[5] = this.project.camera.y;
 
 		this.drawGridAndBounds();
 

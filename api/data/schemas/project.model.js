@@ -57,7 +57,12 @@ const ProjectScheme = new Schema({
 			required: true,
 			default: 0,
 		},
-	}]
+	}],
+	camera: {
+		x: { type: Number, required: true, default: 0 },
+		y: { type: Number, required: true, default: 0 },
+		zoom: { type: Number, required: true, default: 1 },
+	},
 });
 
 module.exports = model("Project", ProjectScheme);
