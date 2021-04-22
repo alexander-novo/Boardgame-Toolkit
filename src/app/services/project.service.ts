@@ -81,6 +81,8 @@ export class ProjectService {
 	saveProject(id: string, project: Project) {
 		const params = new HttpParams().set("id", id);
 
+		project.date.modified = new Date();
+
 		return this.http.put<void>('/api/projects/project', project, { params });
 	}
 

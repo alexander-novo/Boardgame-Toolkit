@@ -17,7 +17,7 @@ export const environment = {
 			zoomSpeed: .0025,
 		}
 	},
-
+	maxAssetSize: 4000000,
 };
 
 /*

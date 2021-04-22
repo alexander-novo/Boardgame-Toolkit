@@ -1,7 +1,7 @@
 <mat-sidenav-container style="height:calc(100% - 64px)" (appDropZone)="onFileDrop($event)" autosize hasBackdrop="false">
 	<mat-sidenav mode="side" opened disableClose>
 		<mat-accordion>
-			<mat-expansion-panel>
+			<mat-expansion-panel expanded id="assets-panel">
 				<mat-expansion-panel-header>
 					<mat-panel-title>Assets</mat-panel-title>
 				</mat-expansion-panel-header>
@@ -44,7 +44,10 @@
 						</mat-nested-tree-node>
 					</mat-button-toggle-group>
 				</mat-tree>
-				<button mat-raised-button color="primary" (click)="newCollection([])" id="new-collection">
+				<button class="asset-button" mat-raised-button color="primary" (click)="uploadAssetsPopup()">
+					Upload Assets
+				</button>
+				<button class="asset-button" mat-raised-button color="primary" (click)="newCollection([])">
 					New Collection
 				</button>
 			</mat-expansion-panel>

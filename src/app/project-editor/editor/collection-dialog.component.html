@@ -3,7 +3,7 @@
 	<form [formGroup]="newCollectionForm">
 		<mat-form-field>
 			<mat-label>Name</mat-label>
-			<input required matInput [(ngModel)]="data.newCollection.name" formControlName="name">
+			<input required matInput formControlName="name">
 			<mat-error *ngIf="newCollectionForm.get('name').hasError('required')">
 				Collection name is required.
 			</mat-error>
@@ -31,5 +31,5 @@
 </div>
 <div mat-dialog-actions>
 	<button mat-button (click)="onNoClick()">No Thanks</button>
-	<button mat-button [disabled]="!newCollectionForm.valid" (click)="onOkClick()" cdkFocusInitial>Ok</button>
+	<button mat-button [disabled]="!newCollectionForm.valid" (click)="onOkClick()">Ok</button>
 </div>

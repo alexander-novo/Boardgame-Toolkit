@@ -37,7 +37,9 @@ mat-sidenav {
 	width: 100%;
 }
 
-#new-collection {
-	margin-top: 10px;
-	width: 100%
+#assets-panel {
+	.asset-button {
+		margin-top: 10px;
+		width: 100%
+	}
 }

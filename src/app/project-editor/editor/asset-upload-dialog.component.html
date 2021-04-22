@@ -1,0 +1,37 @@
+<h1 mat-dialog-title>Upload Assets</h1>
+<div mat-dialog-content>
+	<ngx-dropzone accept="image/*" (change)="onFileAdd($event)" [maxFileSize]="environment.maxAssetSize">
+		<ngx-dropzone-label>
+			Drag and drop images or click to browse
+		</ngx-dropzone-label>
+		<div *ngFor="let f of files">
+			<ngx-dropzone-image-preview [file]="f" removable (removed)="onRemove(f)">
+				<ngx-dropzone-label>
+					{{f.name}}
+				</ngx-dropzone-label>
+			</ngx-dropzone-image-preview>
+		</div>
+	</ngx-dropzone>
+	<mat-expansion-panel>
+		<mat-expansion-panel-header>
+			<mat-panel-title>
+				Collections
+			</mat-panel-title>
+			<mat-panel-description>
+				Add to collection
+			</mat-panel-description>
+		</mat-expansion-panel-header>
+		<mat-selection-list #collectionList multiple="false">
+			<mat-list-option [value]="-1">
+				New Collection
+			</mat-list-option>
+			<mat-list-option *ngFor="let collection of data.collections" [value]="collection.index">
+				{{collection.collection.name}}
+			</mat-list-option>
+		</mat-selection-list>
+	</mat-expansion-panel>
+</div>
+<div mat-dialog-actions>
+	<button mat-button (click)="onNoClick()">Cancel</button>
+	<button mat-button [disabled]="files.length == 0" (click)="onOkClick()">Ok</button>
+</div>

@@ -1,6 +1,5 @@
-import { Component, Inject, OnInit, ViewChild } from '@angular/core';
-import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { MatSelectionList } from '@angular/material/list';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute } from '@angular/router';
 import { Asset, AssetCollection, Project, ProjectService } from 'src/app/services/project.service';
 import { NestedTreeControl } from '@angular/cdk/tree';
@@ -9,22 +8,15 @@ import { ElementRef } from '@angular/core';
 import { fabric } from "fabric";
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSidenav } from '@angular/material/sidenav';
-import { FormGroup, FormControl, Validators } from '@angular/forms';
-import { FileValidator } from 'ngx-material-file-input';
 import { environment } from 'src/environments/environment';
+import { CollectionDialogComponent } from './collection-dialog.component';
+import { AssetUploadDialogComponent } from './asset-upload-dialog.component';
+import { forkJoin, Subject, Subscription } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 
 enum DisplayType {
 	Asset = "Asset", Collection = "Collection"
-}
-
-export class CollectionDialogData {
-	newCollection: {
-		name: string,
-		assets: Array<number>,
-	};
-	assets: Array<{ asset: Asset, index: number }>;
-	defaultSelection: Array<number>;
 }
 
 interface Drawable {
@@ -59,7 +51,7 @@ export class EditorComponent implements OnInit {
 	canvas: fabric.Canvas;
 	dirty = false;
 	shouldsave = true;
-	expectingNewAssets = false;
+	turnNewAssetsIntoCollection = false;
 	currentDragAsset: Drawable;
 	selectedNonDrawable = false;
 	isDraggingCanvas = false;
@@ -89,34 +81,39 @@ export class EditorComponent implements OnInit {
 	}
 
 	onFileDrop(event: Array<File>) {
+		this.uploadNewAssets(event);
+	}
+
+	uploadNewAssets(files: File[], createNewCollection?: boolean, collectionIndex?: number) {
+		createNewCollection ??= files.length > 1;
 		// Save the project first, then create new assets on the server
 		// Upload images to new asset urls, then pull project down from server
 		this.projectService.saveProject(this.projectId, this.project).subscribe(
 			() => {
 				this.snackBar.open("Project Saved", undefined, { duration: environment.editor.autoSaveBarDuration });
-				this.projectService.createNewAssets(this.projectId, event).subscribe(
+				this.projectService.createNewAssets(this.projectId, files).subscribe(
 					uploadUrls => {
-						console.log(uploadUrls);
-
-						if (uploadUrls.length > 1) {
-							this.expectingNewAssets = true;
-							console.log("exepcting collection of assets")
-						}
-						let uploaded = (new Array<boolean>(uploadUrls.length)).fill(false);
-						uploadUrls.forEach((url, index) => {
-							console.log("Uploading " + event[index].name + " to " + url);
-							this.projectService.uploadAsset(url, event[index]).subscribe(
-								(res) => {
-									uploaded[index] = true;
-									if (uploaded.every(flag => flag)) {
-										console.log("Successfully uploaded all images. Refreshing project...");
-										this.refreshProject();
+						forkJoin(uploadUrls.map((url, index) => {
+							return this.projectService.uploadAsset(url, files[index]);
+						}, this)).subscribe(
+							() => {
+								this.refreshProject().subscribe(
+									({ newAssets }) => {
+										console.log("Exciting!", { newAssets, createNewCollection, collectionIndex });
+										if (createNewCollection) {
+											this.newCollection(newAssets.map(({ asset, index }) => index))
+										} else if (collectionIndex !== undefined) {
+											let collection = this.project.assetCollections[collectionIndex];
+											newAssets.forEach(({ asset, index }) => {
+												asset.assetCollection = collectionIndex;
+												collection.assets.push(index);
+											});
+										}
 									}
-								},
-								err => console.error(err),
-								() => { }
-							)
-						}, this);
+								);
+							},
+							err => console.log(err)
+						);
 					},
 					err => console.error(err),
 					() => { }
@@ -126,30 +123,40 @@ export class EditorComponent implements OnInit {
 	}
 
 
-	refreshProject(): void {
-		this.projectService.getProject(this.projectId).subscribe(
-			project => {
-
-				console.log("afer dialog box");
-
+	refreshProject() {
+		let obs = this.projectService.getProject(this.projectId).pipe(
+			map(project => {
 				let oldProject = this.project;
 				this.project = project;
-				this.addProjectToCanvas();
 
-				if (this.expectingNewAssets) {
-					//array of new assets greater than 1
-					let assets = project.assets.map((asset, index) => ({ asset, index })).filter(({ asset, index }) => !oldProject.assets.some(oldAsset => oldAsset._id == asset._id));
-					this.newCollection(assets.map(({ asset, index }) => index))
-					console.log("expecting to opendialog box");
-					this.expectingNewAssets = false;
-				}
 				console.log(this.project);
-			},
+
+				let newAssets = oldProject === undefined ?
+					undefined :
+					project.assets
+						.map((asset, index) => ({ asset, index }))
+						.filter(({ asset, index }) => !oldProject.assets.some(oldAsset => oldAsset._id == asset._id));
+
+				console.log("newAssets: ", newAssets);
+
+				return { oldProject, newAssets };
+			}, this),
+		);
+
+		let subj = new Subject<{ oldProject: Project, newAssets: { asset: Asset, index: number }[] }>();
+		obs.subscribe(subj);
+
+		subj.subscribe(
+			() => { },
 			err => {
 				console.error(err);
 			},
-			() => { }
+			() => {
+				this.addProjectToCanvas();
+			}
 		);
+
+		return subj;
 	}
 
 	ngAfterViewInit(): void {
@@ -167,7 +174,7 @@ export class EditorComponent implements OnInit {
 		});
 
 		// Disable context menu
-		fabric.util.addListener(document.getElementsByClassName('upper-canvas')[0] as HTMLElement, 'contextmenu', function (e) {
+		fabric.util.addListener(document.getElementsByClassName('upper-canvas')[0] as HTMLElement, 'contextmenu', function (e: { preventDefault: () => void; }) {
 			e.preventDefault();
 		});
 
@@ -257,6 +264,8 @@ export class EditorComponent implements OnInit {
 				this.project.camera.y = vpt[5];
 				this.dirty = true;
 
+				this.canvas.setCursor('grabbing');
+
 				this.canvas.setViewportTransform(this.canvas.viewportTransform);
 				this.canvas.requestRenderAll();
 			}
@@ -337,8 +346,6 @@ export class EditorComponent implements OnInit {
 				]));
 
 		this.dataSource.data = Array.from(this.Drawables.values());
-		console.log("Drawables:");
-		console.log(this.Drawables);
 		this.canvas.renderAll();
 	}
 
@@ -400,23 +407,22 @@ export class EditorComponent implements OnInit {
 	}
 
 	newCollection(defaultSelection: number[]): void {
-		let newCollectionName: string = '';
-
+		console.log("Got a default selection: ", defaultSelection);
+		let assets = this.project.assets
+			.map((asset, index) => ({ asset, index }))
+			.filter(({ asset }) => asset.assetCollection === undefined);
+		console.log("Assets: ", assets);
 		const dialogRef = this.dialog.open(CollectionDialogComponent, {
-
 			width: '400px',
 			data: {
-				newCollection: {
-					name: newCollectionName,
-					assets: [],
-				},
 				defaultSelection,
-				assets: this.project.assets.filter(asset => asset.assetCollection === undefined).map((asset, index) => { return { asset, index } }),
+				assets,
 			}
 		});
 
-		dialogRef.afterClosed().subscribe(({ newCollection, file }) => {
-			if (newCollection !== undefined) {
+		dialogRef.afterClosed().subscribe(re => {
+			if (re !== undefined) {
+				let { newCollection, file } = re;
 				this.project.assetCollections.push(newCollection);
 				for (let index of newCollection.assets) {
 					this.project.assets[index].assetCollection = this.project.assetCollections.length - 1;
@@ -500,41 +506,20 @@ export class EditorComponent implements OnInit {
 		});
 	}
 
-}
-
-@Component({
-	selector: 'collection-dialog',
-	templateUrl: 'collection-dialog.component.html',
-})
-export class CollectionDialogComponent {
-	defaultSelection: Asset[];
-	@ViewChild('collectionList') collectionList: MatSelectionList;
-	newCollectionForm = new FormGroup({
-		name: new FormControl('', [Validators.required, Validators.minLength(4)]),
-		backFile: new FormControl('', [FileValidator.maxContentSize(4000000)]),
-	});
-
-	constructor(
-		public dialogRef: MatDialogRef<CollectionDialogComponent>,
-		@Inject(MAT_DIALOG_DATA) public data: CollectionDialogData) { }
-
-	ngAfterViewInit() {
-		console.log(this.data);
-	}
-
-
-	onNoClick(): void {
-		this.dialogRef.close();
-	}
-
-	onOkClick(): void {
-		this.dialogRef.close({
-			newCollection: {
-				name: this.data.newCollection.name,
-				assets: this.collectionList.selectedOptions.selected.map(option => option.value),
+	uploadAssetsPopup() {
+		const dialogRef = this.dialog.open(AssetUploadDialogComponent, {
+			width: '400px',
+			data: {
+				collections: this.project.assetCollections.map((collection, index) => ({ collection, index })),
 			},
-			file: this.newCollectionForm.get('backFile').value
 		});
+
+		dialogRef.afterClosed().subscribe(
+			({ files, collection }) => {
+				console.log("Collection selected: " + collection);
+				this.uploadNewAssets(files, collection === -1, collection);
+			}
+		)
 	}
 
 }
