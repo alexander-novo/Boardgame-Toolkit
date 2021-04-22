@@ -1,6 +1,7 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { HttpClientModule } from '@angular/common/http';
+import { MAT_COLOR_FORMATS, NgxMatColorPickerModule, NGX_MAT_COLOR_FORMATS } from '@angular-material-components/color-picker';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RECAPTCHA_SETTINGS, RecaptchaSettings } from "ng-recaptcha";
 
@@ -27,6 +28,7 @@ import { ProjectEditorModule } from './project-editor/project-editor.module';
 		AppRoutingModule,
 		BrowserAnimationsModule,
 		HttpClientModule,
+		NgxMatColorPickerModule,
 		TimeagoModule.forRoot(),
 		JwtModule.forRoot({
 			config: {
@@ -40,6 +42,11 @@ import { ProjectEditorModule } from './project-editor/project-editor.module';
 			provide: RECAPTCHA_SETTINGS,
 			useValue: { siteKey: "6LfMqD0aAAAAAF-0krIJHlcKKWIWFiH0LyiTXj0M" } as RecaptchaSettings,
 		},
+		{ 
+			provide: MAT_COLOR_FORMATS,
+			useValue: NGX_MAT_COLOR_FORMATS 
+		},
+
 	],
 	bootstrap: [AppComponent],
 	schemas: [CUSTOM_ELEMENTS_SCHEMA],

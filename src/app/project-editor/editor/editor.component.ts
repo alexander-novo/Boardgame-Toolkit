@@ -9,9 +9,12 @@ import { ElementRef } from '@angular/core';
 import { fabric } from "fabric";
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSidenav } from '@angular/material/sidenav';
-import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { AbstractControl, FormGroup, FormControl, Validators } from '@angular/forms';
 import { FileValidator } from 'ngx-material-file-input';
 import { environment } from 'src/environments/environment';
+import {MatChipsModule} from '@angular/material/chips'; 
+import { ThemePalette } from '@angular/material/core';
+
 
 
 enum DisplayType {
@@ -586,6 +589,18 @@ export class CollectionDialogComponent {
 
 export class TagDialogComponent{
 	//@ViewChild('tagList') tagList: MatSelectionList;
+	public disabled = false;
+	public color: ThemePalette = 'primary';
+	public touchUi = false;
+
+  	colorCtr: AbstractControl = new FormControl(null);
+
+	public options = [
+		{ value: true, label: 'True' },
+		{ value: false, label: 'False' }
+	];
+
+  	public listColors = ['primary', 'accent', 'warn'];
 
 	newTagForm = new FormGroup({
 		name: new FormControl('', [Validators.required, Validators.minLength(4)]),
