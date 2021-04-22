@@ -1,8 +1,10 @@
 import { Component, OnInit } from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute } from '@angular/router';
 import { Subject } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Asset, Project, ProjectService } from 'src/app/services/project.service';
+import { environment } from 'src/environments/environment';
 
 @Component({
 	selector: 'app-workspace',
@@ -13,10 +15,14 @@ export class WorkspaceComponent implements OnInit {
 
 	project: Project;
 	projectId: string;
+	dirty = false;
+
+	private autosave: number;
 
 	constructor(
 		private route: ActivatedRoute,
 		private projectService: ProjectService,
+		private snackBar: MatSnackBar
 	) { }
 
 	ngOnInit(): void {
@@ -28,6 +34,11 @@ export class WorkspaceComponent implements OnInit {
 	}
 
 	refreshProject(callback?: (param: { oldProject: Project, newAssets: { asset: Asset, index: number }[] }) => void) {
+		if (this.autosave) {
+			clearInterval(this.autosave);
+			this.autosave = null;
+		}
+
 		let obs = this.projectService.getProject(this.projectId).pipe(
 			map(project => {
 				let oldProject = this.project;
@@ -45,11 +56,21 @@ export class WorkspaceComponent implements OnInit {
 			}, this),
 		);
 
-		// let subj = new Subject<{ oldProject: Project, newAssets: { asset: Asset, index: number }[] }>();
-		// obs.subscribe(subj);
-
 		obs.subscribe(
-			obj => callback?.(obj),
+			obj => {
+				// Auto save every 5 seconds if the project is dirty
+				this.autosave = window.setInterval(() => {
+					if (this.dirty) {
+						this.projectService.saveProject(this.projectId, this.project).subscribe(
+							() => { this.snackBar.open("Project Saved", undefined, { duration: environment.editor.autoSaveBarDuration }); }
+						);
+						this.project.__v++;
+						this.dirty = false;
+					}
+				}, environment.editor.autoSaveInterval);
+
+				callback?.(obj);
+			},
 			err => console.error(err)
 		)
 	}

@@ -48,6 +48,9 @@ export class EditorComponent implements OnInit {
 	@Output()
 	reloadProject = new EventEmitter<(param: { oldProject: Project, newAssets: { asset: Asset, index: number }[] }) => void>();
 
+	@Output()
+	dirty = new EventEmitter<void>();
+
 	Drawables = new Map<{ type: DisplayType, id: string }, Drawable>();
 	treeControl = new NestedTreeControl<Drawable | { type: DisplayType, ref: Asset }>(
 		node => {
@@ -62,8 +65,6 @@ export class EditorComponent implements OnInit {
 	myCanvas: ElementRef<HTMLCanvasElement>;
 	// context: CanvasRenderingContext2D;
 	canvas: fabric.Canvas;
-	dirty = false;
-	shouldsave = true;
 	turnNewAssetsIntoCollection = false;
 	currentDragAsset: Drawable;
 	selectedNonDrawable = false;
@@ -190,7 +191,9 @@ export class EditorComponent implements OnInit {
 			this.project.camera.zoom = zoom;
 			this.project.camera.x = vpt[4];
 			this.project.camera.y = vpt[5];
-			this.dirty = true;
+
+			// Let the workspace know the project is dirty
+			this.dirty.emit();
 		});
 
 		this.canvas.on('mouse:down', opt => {
@@ -234,10 +237,10 @@ export class EditorComponent implements OnInit {
 
 				this.project.camera.x = vpt[4];
 				this.project.camera.y = vpt[5];
-				this.dirty = true;
+
+				this.dirty.emit();
 
 				this.canvas.setCursor('grabbing');
-
 				this.canvas.setViewportTransform(this.canvas.viewportTransform);
 				this.canvas.requestRenderAll();
 			}
@@ -254,18 +257,6 @@ export class EditorComponent implements OnInit {
 		})
 
 		this.addProjectToCanvas();
-
-		// Auto save every 5 seconds if the project is dirty
-		setInterval(() => {
-			if (this.dirty && this.shouldsave) {
-				console.log(this.project);
-				this.projectService.saveProject(this.projectId, this.project).subscribe(
-					() => { this.snackBar.open("Project Saved", undefined, { duration: environment.editor.autoSaveBarDuration }); }
-				);
-				this.project.__v++;
-				this.dirty = false;
-			}
-		}, environment.editor.autoSaveInterval)
 	}
 
 	addProjectToCanvas(): void {
@@ -472,7 +463,7 @@ export class EditorComponent implements OnInit {
 			};
 			drawable.ref.angle = drawable.image.angle;
 
-			this.dirty = true;
+			this.dirty.emit();
 		});
 	}
 
