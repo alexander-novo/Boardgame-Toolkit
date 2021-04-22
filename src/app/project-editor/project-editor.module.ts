@@ -10,9 +10,10 @@ import { CollectionDialogComponent } from './editor/collection-dialog.component'
 import { AssetUploadDialogComponent } from './editor/asset-upload-dialog.component';
 import { AngularMaterialModule } from '../angular-material.module';
 import { DirectivesModule } from '../directives/directives.module';
+import { WorkspaceComponent } from './workspace/workspace.component';
 
 @NgModule({
-	declarations: [EditorComponent, CollectionDialogComponent, AssetUploadDialogComponent],
+	declarations: [EditorComponent, CollectionDialogComponent, AssetUploadDialogComponent, WorkspaceComponent],
 	imports: [
 		CommonModule,
 		AngularMaterialModule,

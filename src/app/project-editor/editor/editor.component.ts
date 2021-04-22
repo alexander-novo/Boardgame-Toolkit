@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute } from '@angular/router';
 import { Asset, AssetCollection, Project, ProjectService } from 'src/app/services/project.service';
@@ -12,7 +12,7 @@ import { environment } from 'src/environments/environment';
 import { CollectionDialogComponent } from './collection-dialog.component';
 import { AssetUploadDialogComponent } from './asset-upload-dialog.component';
 import { forkJoin, Subject, Subscription } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { EventEmitter } from '@angular/core';
 
 
 enum DisplayType {
@@ -27,14 +27,27 @@ interface Drawable {
 }
 
 @Component({
-	selector: 'app-editor',
+	selector: 'project-editor',
 	templateUrl: './editor.component.html',
 	styleUrls: ['./editor.component.scss']
 })
 export class EditorComponent implements OnInit {
 	eDisplayType = DisplayType;
+
+	private _project: Project;
+	@Input()
+	get project(): Project { return this._project; }
+	set project(proj: Project) {
+		this._project = proj;
+		this.addProjectToCanvas();
+	}
+
+	@Input()
 	projectId: string;
-	project: Project;
+
+	@Output()
+	reloadProject = new EventEmitter<(param: { oldProject: Project, newAssets: { asset: Asset, index: number }[] }) => void>();
+
 	Drawables = new Map<{ type: DisplayType, id: string }, Drawable>();
 	treeControl = new NestedTreeControl<Drawable | { type: DisplayType, ref: Asset }>(
 		node => {
@@ -64,7 +77,6 @@ export class EditorComponent implements OnInit {
 		(node.ref as AssetCollection).assets.length > 0;
 
 	constructor(
-		private route: ActivatedRoute,
 		private projectService: ProjectService,
 		private dialog: MatDialog,
 		private snackBar: MatSnackBar
@@ -73,11 +85,7 @@ export class EditorComponent implements OnInit {
 	}
 
 	ngOnInit(): void {
-		this.route.params.subscribe(params => {
-			this.projectId = window.decodeURIComponent(params['id']);
 
-			this.refreshProject();
-		});
 	}
 
 	onFileDrop(event: Array<File>) {
@@ -97,7 +105,7 @@ export class EditorComponent implements OnInit {
 							return this.projectService.uploadAsset(url, files[index]);
 						}, this)).subscribe(
 							() => {
-								this.refreshProject().subscribe(
+								this.reloadProject.emit(
 									({ newAssets }) => {
 										console.log("Exciting!", { newAssets, createNewCollection, collectionIndex });
 										if (createNewCollection) {
@@ -110,7 +118,7 @@ export class EditorComponent implements OnInit {
 											});
 										}
 									}
-								);
+								)
 							},
 							err => console.log(err)
 						);
@@ -122,42 +130,6 @@ export class EditorComponent implements OnInit {
 		)
 	}
 
-
-	refreshProject() {
-		let obs = this.projectService.getProject(this.projectId).pipe(
-			map(project => {
-				let oldProject = this.project;
-				this.project = project;
-
-				console.log(this.project);
-
-				let newAssets = oldProject === undefined ?
-					undefined :
-					project.assets
-						.map((asset, index) => ({ asset, index }))
-						.filter(({ asset, index }) => !oldProject.assets.some(oldAsset => oldAsset._id == asset._id));
-
-				console.log("newAssets: ", newAssets);
-
-				return { oldProject, newAssets };
-			}, this),
-		);
-
-		let subj = new Subject<{ oldProject: Project, newAssets: { asset: Asset, index: number }[] }>();
-		obs.subscribe(subj);
-
-		subj.subscribe(
-			() => { },
-			err => {
-				console.error(err);
-			},
-			() => {
-				this.addProjectToCanvas();
-			}
-		);
-
-		return subj;
-	}
 
 	ngAfterViewInit(): void {
 		// Make canvas pixel size the same as it actually is on the DOM (css set to 100%)
@@ -436,9 +408,7 @@ export class EditorComponent implements OnInit {
 							this.projectService.addThumbnailToCollection(this.projectId, this.project.assetCollections.length - 1, file).subscribe(
 								(uploadUrl) => {
 									this.projectService.uploadAsset(uploadUrl, file.files[0]).subscribe(
-										() => {
-											this.refreshProject();
-										}
+										() => this.reloadProject.emit()
 									);
 								}
 							);

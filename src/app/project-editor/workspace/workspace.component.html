@@ -1,0 +1,6 @@
+<mat-tab-group mat-align-tabs="center" class="full-tab-group">
+	<mat-tab label="Project">
+		<project-editor [project]="project" [projectId]="projectId" (reloadProject)="refreshProject($event)">
+		</project-editor>
+	</mat-tab>
+</mat-tab-group>

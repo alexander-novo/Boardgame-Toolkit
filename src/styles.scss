@@ -93,3 +93,10 @@ mat-button-toggle.selectable button span {
 	display: flex;
 	align-items: center
 }
+
+mat-tab-group.full-tab-group {
+	height: calc(100% - 64px);
+	.mat-tab-body-wrapper {
+		height: 100%;
+	}
+}

@@ -1,4 +1,4 @@
-<mat-sidenav-container style="height:calc(100% - 64px)" (appDropZone)="onFileDrop($event)" autosize hasBackdrop="false">
+<mat-sidenav-container (appDropZone)="onFileDrop($event)" autosize hasBackdrop="false">
 	<mat-sidenav mode="side" opened disableClose>
 		<mat-accordion>
 			<mat-expansion-panel expanded id="assets-panel">
@@ -84,9 +84,9 @@
 				<mat-slider min=0 max=2 step=.01 thumbLabel [(ngModel)]="selectedElement.image.scaleX"
 					(ngModelChange)="selectedElement.ref.scale.x = selectedElement.ref.scale.y = selectedElement.image.scaleY = selectedElement.image.scaleX; canvas.renderAll(); dirty = true;">
 				</mat-slider>
-				<mat-checkbox [(ngModel)]="selectedElement.ref.hiddenFromPlayers" (ngModelChange)="dirty = true">
+				<mat-slide-toggle [(ngModel)]="selectedElement.ref.hiddenFromPlayers" (ngModelChange)="dirty = true;">
 					Hide from players
-				</mat-checkbox>
+				</mat-slide-toggle>
 			</mat-expansion-panel>
 		</mat-accordion>
 	</mat-sidenav>
