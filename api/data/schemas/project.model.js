@@ -40,6 +40,7 @@ const ProjectScheme = new Schema({
 			dataNumber: {type: Number, required: false},
 		}],*/
 		assetCollection: { type: Number, required: false },
+		hiddenFromPlayers: { type: Boolean, required: true, default: false },
 	}],
 	projectTags:[{
 		name: {type: String, required: true},
@@ -72,6 +73,7 @@ const ProjectScheme = new Schema({
 			required: true,
 			default: 0,
 		},
+		hiddenFromPlayers: { type: Boolean, required: true, default: false },
 	}],
 	camera: {
 		x: { type: Number, required: true, default: 0 },

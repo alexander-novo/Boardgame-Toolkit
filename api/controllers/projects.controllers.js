@@ -36,6 +36,11 @@ module.exports.newProject = async (req, res) => {
 		return;
 	}
 
+	if (user == null) {
+		res.status(404).json("User token invalid");
+		return;
+	}
+
 	// Create new project with sent details
 	let project = new Project({
 		name: req.body.name,
@@ -113,6 +118,11 @@ module.exports.listProjects = async (req, res) => {
 		return;
 	}
 
+	if (user == null) {
+		res.status(404).json("User token invalid");
+		return;
+	}
+
 	// TODO: this could probably be done better
 	let projects = [];
 	for (var project of user.projects) {
@@ -136,6 +146,11 @@ module.exports.newAssets = async (req, res) => {
 		project = await Project.findById(req.body.id).populate('owner');
 	} catch (err) {
 		res.status(500).json(err);
+		return;
+	}
+
+	if (project == null) {
+		res.status(404).end();
 		return;
 	}
 
@@ -196,6 +211,11 @@ module.exports.getProject = async (req, res) => {
 		res.status(500).json(err);
 	}
 
+	if (project == null) {
+		res.status(404).end();
+		return;
+	}
+
 	if (project.owner != req.user.id) {
 		res.status(403).json("You don't have permission for that.");
 		return;
@@ -211,6 +231,11 @@ module.exports.saveProject = async (req, res) => {
 	} catch (err) {
 		console.error("Error loading project from DB:\n" + err);
 		res.status(500).json(err);
+		return;
+	}
+
+	if (project == null) {
+		res.status(404).end();
 		return;
 	}
 
@@ -243,6 +268,11 @@ module.exports.collectionThumbnail = async (req, res) => {
 		project = await Project.findById(req.body.id).populate('owner');
 	} catch (err) {
 		res.status(500).json(err);
+		return;
+	}
+
+	if (project == null) {
+		restart.status(404).end();
 		return;
 	}
 

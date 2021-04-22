@@ -18,6 +18,7 @@ export interface Asset {
 	};
 	angle: number;
 	assetCollection?: number;
+	hiddenFromPlayers: boolean;
 }
 
 export interface Tag{
@@ -41,6 +42,7 @@ export interface AssetCollection {
 		y: number;
 	};
 	angle: number;
+	hiddenFromPlayers: boolean;
 }
 
 export class Project {
