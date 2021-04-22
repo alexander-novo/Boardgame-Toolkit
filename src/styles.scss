@@ -88,3 +88,8 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; background:
 .login-wrapper .mat-form-field-appearance-legacy .mat-form-field-infix {
   padding: 0.8375em 0;
 }
+
+mat-button-toggle.selectable button span {
+	display: flex;
+	align-items: center
+}

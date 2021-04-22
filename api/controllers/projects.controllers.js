@@ -36,6 +36,11 @@ module.exports.newProject = async (req, res) => {
 		return;
 	}
 
+	if (user == null) {
+		res.status(404).json("User token invalid");
+		return;
+	}
+
 	// Create new project with sent details
 	let project = new Project({
 		name: req.body.name,
@@ -113,6 +118,11 @@ module.exports.listProjects = async (req, res) => {
 		return;
 	}
 
+	if (user == null) {
+		res.status(404).json("User token invalid");
+		return;
+	}
+
 	// TODO: this could probably be done better
 	let projects = [];
 	for (var project of user.projects) {
@@ -136,6 +146,11 @@ module.exports.newAssets = async (req, res) => {
 		project = await Project.findById(req.body.id).populate('owner');
 	} catch (err) {
 		res.status(500).json(err);
+		return;
+	}
+
+	if (project == null) {
+		res.status(404).end();
 		return;
 	}
 
@@ -196,6 +211,11 @@ module.exports.getProject = async (req, res) => {
 		res.status(500).json(err);
 	}
 
+	if (project == null) {
+		res.status(404).end();
+		return;
+	}
+
 	if (project.owner != req.user.id) {
 		res.status(403).json("You don't have permission for that.");
 		return;
@@ -211,6 +231,11 @@ module.exports.saveProject = async (req, res) => {
 	} catch (err) {
 		console.error("Error loading project from DB:\n" + err);
 		res.status(500).json(err);
+		return;
+	}
+
+	if (project == null) {
+		res.status(404).end();
 		return;
 	}
 
@@ -230,4 +255,68 @@ module.exports.saveProject = async (req, res) => {
 	}
 
 	res.status(200).end();
+}
+
+module.exports.collectionThumbnail = async (req, res) => {
+	if (!req.body.size || req.body.size > MAX_ASSET_SIZE) {
+		res.status(500).json({ error: "Back Image size does not exist or exceeds max size.", maxSize: MAX_ASSET_SIZE, size: req.size });
+		return;
+	}
+
+	let project;
+	try {
+		project = await Project.findById(req.body.id).populate('owner');
+	} catch (err) {
+		res.status(500).json(err);
+		return;
+	}
+
+	if (project == null) {
+		restart.status(404).end();
+		return;
+	}
+
+	if (project.owner.id != req.user.id) {
+		res.status(403).json("You don't have permission for that.");
+		return;
+	}
+
+	if (req.body.collectionIndex >= project.assetCollections.length) {
+		res.status(500).json("Invalid index");
+		return;
+	}
+
+	const s3 = new S3();
+
+	// TODO: Change the key to something more unique
+	// The key might overlap if an asset gets deleted
+	const s3Params = {
+		Bucket: S3_BUCKET,
+		Key: `${project.owner.username}/${project.name}/collection-${req.body.collectionIndex}-img`,
+		Expires: 360,
+		ContentType: req.body.type,
+		ACL: 'public-read',
+		// ContentLength: asset.size,
+	};
+
+	const newThumbnailUrl = `https://${s3Params.Bucket}.s3-us-west-1.amazonaws.com/${encodeURIComponent(s3Params.Key)}`;
+
+	return s3.getSignedUrlPromise('putObject', s3Params).then((signedUrl) => {
+		console.log("Generated url:", signedUrl);
+
+		project.assetCollections[req.body.collectionIndex].url = newThumbnailUrl;
+
+		try {
+			project.save();
+		} catch (err) {
+			console.err(err);
+			res.status(500).json(err);
+		}
+
+		res.status(200).json(signedUrl);
+	}, (err) => {
+		console.err('Error getting signed URL from S3:', err);
+		res.status(500).json(err);
+		return;
+	});
 }

@@ -6,7 +6,19 @@ import { Subject } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { CookieService } from 'ngx-cookie-service';
-import { FileInput } from 'ngx-material-file-input';
+import { Project, ProjectThumbnail } from './project.service';
+
+export interface User {
+	name: string;
+	username: string;
+	password: string;
+	email: string;
+	date: {
+		creation: Date;
+		birth: Date
+	};
+	projects: string[];
+}
 
 // Service for managing basic account information
 // TODO: Rename to more descriptive name, such as 'AuthService', and put in /auth folder maybe?
@@ -65,13 +77,13 @@ export class RegisterService {
 	// Service for getting personal details (such as username, email, name).
 	// Must be logged in.
 	me() {
-		return this.http.get<{ username: string, email: string, name: string }>('/api/users/me');
+		return this.http.get<User>('/api/users/me');
 	}
 
 	// Service for getting list of personal projects
 	// Must be logged in.
 	getMyProjects() {
-		return this.http.get<{ name: string, id: string, modified: Date, thumbnail?: string }[]>('/api/projects/mine');
+		return this.http.get<ProjectThumbnail[]>('/api/projects/mine');
 	}
 
 	// Whether or not the user is currently logged in.

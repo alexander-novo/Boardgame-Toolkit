@@ -18,7 +18,7 @@ const routes: Routes = [
 	{ path: 'about', component: AboutComponent },
 	// The new project page can only be accessed if you are logged in. If not logged in, LoginGuard redirects to /login
 	{ path: 'new-project', component: NewProjectComponent, canActivate: [LoginGuard] },
-	{ path: 'project/:id', component: EditorComponent, pathMatch: 'prefix' }
+	{ path: 'project/:id', component: EditorComponent, canActivate: [LoginGuard], pathMatch: 'prefix' }
 ];
 
 @NgModule({

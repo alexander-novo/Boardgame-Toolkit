@@ -42,4 +42,8 @@ router
 	.route('/api/projects/assets/new')
 	.put(ejwt(EJWT_OPTIONS), ctrProjects.newAssets);
 
+router
+	.route('/api/projects/collection/thumbnail')
+	.put(ejwt(EJWT_OPTIONS), ctrProjects.collectionThumbnail);
+
 module.exports = router;

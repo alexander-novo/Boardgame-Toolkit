@@ -45,6 +45,11 @@ module.exports.personalInfo = (ejwt(EJWT_OPTIONS), async (req, res) => {
 		return;
 	}
 
+	if (user == null) {
+		res.status(404).end();
+		return;
+	}
+
 	// Respond with acquired information
 	res.status(200).json({ username: user.username, email: user.email, name: user.name });
 });

@@ -3,7 +3,21 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+	production: false,
+	editor: {
+		autoSaveBarDuration: 1000,
+		autoSaveInterval: 10000,
+		workspace: {
+			totalWidth: 50000,
+			totalHeight: 50000,
+			boundsStrokeWidth: 10,
+			minZoom: .04,
+			maxZoom: 20,
+			grid: 200,
+			zoomSpeed: .0025,
+		}
+	},
+	maxAssetSize: 4000000,
 };
 
 /*

@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { RegisterService } from '../../services/register.service';
 import { FileValidator, FileInput } from 'ngx-material-file-input';
 import { ProjectService } from 'src/app/services/project.service';
+import { environment } from 'src/environments/environment';
 
 @Component({
 	selector: 'app-new-project',
@@ -13,7 +14,7 @@ import { ProjectService } from 'src/app/services/project.service';
 export class NewProjectComponent implements OnInit {
 	newProjForm = new FormGroup({
 		name: new FormControl('', [Validators.required, Validators.minLength(4)]),
-		thumbnailFile: new FormControl('', [FileValidator.maxContentSize(4000000)]),
+		thumbnailFile: new FormControl('', [FileValidator.maxContentSize(environment.maxAssetSize)]),
 	});
 
 	constructor(private registerService: RegisterService, private projectService: ProjectService, private router: Router) { }
