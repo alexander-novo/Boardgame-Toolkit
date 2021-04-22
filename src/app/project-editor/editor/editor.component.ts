@@ -12,8 +12,8 @@ import { MatSidenav } from '@angular/material/sidenav';
 import { AbstractControl, FormGroup, FormControl, Validators } from '@angular/forms';
 import { FileValidator } from 'ngx-material-file-input';
 import { environment } from 'src/environments/environment';
-import {MatChipsModule} from '@angular/material/chips'; 
 import { ThemePalette } from '@angular/material/core';
+
 
 
 
@@ -76,6 +76,7 @@ export class EditorComponent implements OnInit {
 	currentDragAsset: Drawable;
 	selectedNonDrawable = false;
 	isDraggingCanvas = false;
+	tags: {name: string}[] = []
 
 	@ViewChild('rightNav')
 	rightNav: MatSidenav;
@@ -464,6 +465,8 @@ export class EditorComponent implements OnInit {
 
 	newTag(){
 		let newTagName: string = '';
+		let tags = this.project.projectTags;
+		this.tags = tags;
 		const dialogRef = this.dialog.open(TagDialogComponent, {
 
 			width: '400px',
@@ -477,6 +480,8 @@ export class EditorComponent implements OnInit {
 		dialogRef.afterClosed().subscribe(({newTag})=> {
 			if (newTag !== undefined) {
 				this.project.projectTags.push(newTag);
+				tags.push(newTag);
+				console.log(this.tags);
 				console.log("New Tag Uploaded! Check MongoDB");
 				this.projectService.saveProject(this.projectId, this.project).subscribe(
 					() => { this.snackBar.open("Project Saved", undefined, { duration: environment.editor.autoSaveBarDuration }); },

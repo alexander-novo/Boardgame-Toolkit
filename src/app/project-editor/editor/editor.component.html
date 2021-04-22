@@ -54,9 +54,16 @@
 				<mat-expansion-panel-header>
 					<mat-panel-title>Tags</mat-panel-title>
 				</mat-expansion-panel-header>
+
+				<mat-chip-list>
+					<mat-chip *ngFor= "let tag of tags">{{tag.name}}</mat-chip>
+				</mat-chip-list> 
+
 				<button mat-raised-button color="primary" (click)="newTag()" id="new-tag">
 					New Tag
 				</button>
+
+				
 			</mat-expansion-panel>
 		</mat-accordion>
 	</mat-sidenav>
