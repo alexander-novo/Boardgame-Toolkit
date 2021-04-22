@@ -49,6 +49,16 @@
 				</button>
 			</mat-expansion-panel>
 		</mat-accordion>
+		<mat-accordion>
+			<mat-expansion-panel>
+				<mat-expansion-panel-header>
+					<mat-panel-title>Tags</mat-panel-title>
+				</mat-expansion-panel-header>
+				<button mat-raised-button color="primary" (click)="newTag()" id="new-tag">
+					New Tag
+				</button>
+			</mat-expansion-panel>
+		</mat-accordion>
 	</mat-sidenav>
 	<mat-sidenav #rightNav mode="over" position=end disableClose>
 		<mat-accordion multi>

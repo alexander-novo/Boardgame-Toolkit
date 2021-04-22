@@ -20,6 +20,13 @@ export interface Asset {
 	assetCollection?: number;
 }
 
+export interface Tag{
+	_id: string;
+	name: string;
+	//dataNumber: number;
+	//dataString: string;
+}
+
 export interface AssetCollection {
 	_id: string;
 	name: string;
@@ -47,6 +54,7 @@ export class Project {
 	};
 	thumbnail?: string;
 	assets: Asset[];
+	projectTags: Tag[];
 	assetCollections: AssetCollection[];
 	camera: {
 		x: number;

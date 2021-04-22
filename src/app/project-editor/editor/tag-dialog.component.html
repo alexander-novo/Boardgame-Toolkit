@@ -1,0 +1,17 @@
+<h1 mat-dialog-title>New Tag</h1>
+<div mat-dialog-content>
+	<form [formGroup]="newTagForm">
+		<mat-form-field>
+			<mat-label>Name</mat-label>
+			<input required matInput [(ngModel)]="data.newTag.name" formControlName="name">
+			<mat-error *ngIf="newTagForm.get('name').hasError('required')">
+				Tag name is required.
+			</mat-error>
+		</mat-form-field>
+	</form>
+</div>
+<!-- add div here for the color selector and use that color for chips-->
+<div mat-dialog-actions>
+	<button mat-button (click)="onNoClick()">No Thanks</button>
+	<button mat-button [disabled]="!newTagForm.valid" (click)="onOkClick()" cdkFocusInitial>Ok</button>
+</div>

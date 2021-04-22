@@ -1,3 +1,4 @@
+const { analyzeAndValidateNgModules } = require("@angular/compiler");
 const { stringify } = require("@angular/compiler/src/util");
 const { Schema, model } = require("mongoose");
 
@@ -32,8 +33,22 @@ const ProjectScheme = new Schema({
 			required: true,
 			default: 0,
 		},
+		/*tags: [{
+			tagName: {type: String, required: false},
+			//maybe just have data and be of any type
+			dataString: {type: String, required: false},
+			dataNumber: {type: Number, required: false},
+		}],*/
 		assetCollection: { type: Number, required: false },
 	}],
+	projectTags:[{
+		name: {type: String, required: true},
+		dataString: {type: String, required: false},
+		dataNumber: {type: Number, required: false},
+		assets: [{type: Number, required: false}],
+		//collections: {[type: Number, required: false]}, do after assets
+	}],
+
 	assetCollections: [{
 		name: { type: String, required: true },
 		assets: [{ type: Number, required: true }],

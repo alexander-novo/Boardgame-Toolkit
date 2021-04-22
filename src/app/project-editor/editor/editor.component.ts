@@ -1,5 +1,5 @@
 import { Component, Inject, OnInit, ViewChild } from '@angular/core';
-import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA, MAT_DIALOG_SCROLL_STRATEGY_FACTORY } from '@angular/material/dialog';
 import { MatSelectionList } from '@angular/material/list';
 import { ActivatedRoute } from '@angular/router';
 import { Asset, AssetCollection, Project, ProjectService } from 'src/app/services/project.service';
@@ -25,6 +25,16 @@ export class CollectionDialogData {
 	};
 	assets: Array<{ asset: Asset, index: number }>;
 	defaultSelection: Array<number>;
+}
+
+export class TagDialogData{
+	newTag: {
+		name: string,
+		//dataString: string,
+		//dataNumber: number,
+		//assets: Array<number>,
+	}
+	//assets: Array<{asset: Asset, index: number}>;
 }
 
 interface Drawable {
@@ -415,9 +425,11 @@ export class EditorComponent implements OnInit {
 			}
 		});
 
+
 		dialogRef.afterClosed().subscribe(({ newCollection, file }) => {
 			if (newCollection !== undefined) {
 				this.project.assetCollections.push(newCollection);
+				//what this loop is for?
 				for (let index of newCollection.assets) {
 					this.project.assets[index].assetCollection = this.project.assetCollections.length - 1;
 				}
@@ -440,6 +452,33 @@ export class EditorComponent implements OnInit {
 					},
 					err => {
 						console.error(err);
+					}
+				);
+				this.project.__v++;
+			}
+		});
+	}
+
+	newTag(){
+		let newTagName: string = '';
+		const dialogRef = this.dialog.open(TagDialogComponent, {
+
+			width: '400px',
+			data: {
+				newTag: {
+					name: newTagName,
+				}
+			}
+		});
+
+		dialogRef.afterClosed().subscribe(({newTag})=> {
+			if (newTag !== undefined) {
+				this.project.projectTags.push(newTag);
+				console.log("New Tag Uploaded! Check MongoDB");
+				this.projectService.saveProject(this.projectId, this.project).subscribe(
+					() => { this.snackBar.open("Project Saved", undefined, { duration: environment.editor.autoSaveBarDuration }); },
+					err => {
+						console.log(err);
 					}
 				);
 				this.project.__v++;
@@ -518,6 +557,8 @@ export class CollectionDialogComponent {
 		public dialogRef: MatDialogRef<CollectionDialogComponent>,
 		@Inject(MAT_DIALOG_DATA) public data: CollectionDialogData) { }
 
+
+
 	ngAfterViewInit() {
 		console.log(this.data);
 	}
@@ -537,4 +578,38 @@ export class CollectionDialogComponent {
 		});
 	}
 
+};
+@Component({
+	selector: 'tag-dialog',
+	templateUrl: 'tag-dialog.component.html',
+})
+
+export class TagDialogComponent{
+	//@ViewChild('tagList') tagList: MatSelectionList;
+
+	newTagForm = new FormGroup({
+		name: new FormControl('', [Validators.required, Validators.minLength(4)]),
+		//data: new FormControl('',)
+	});
+
+	constructor(
+		public dialogRef: MatDialogRef<TagDialogComponent>,
+		@Inject(MAT_DIALOG_DATA) public data: TagDialogData) { }
+
+	ngAfterViewInit() {
+		console.log(this.data);
+	}
+
+	onNoClick(): void {
+		this.dialogRef.close();
+	}
+	onOkClick(): void {
+		this.dialogRef.close({
+			newTag:{
+				name: this.data.newTag.name,
+				//dataString: this.data.newTag.dataString
+				//dataNumber: this.data.newTag.dataNumber
+			},
+		});
+	}
 }
