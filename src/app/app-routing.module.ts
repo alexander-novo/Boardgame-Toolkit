@@ -5,6 +5,7 @@ import { RegisterComponent } from './common-app/register/register.component';
 import { ForgotComponent } from './common-app/forgot/forgot.component';
 import { HomeComponent } from './common-app/home/home.component';
 import { LoginGuard } from './login.guard';
+import { AboutComponent } from './common-app/about/about.component';
 import { NewProjectComponent } from './common-app/new-project/new-project.component';
 import { EditorComponent } from './project-editor/editor/editor.component';
 
@@ -13,7 +14,8 @@ const routes: Routes = [
 	{ path: '', component: HomeComponent, canActivate: [LoginGuard] },
 	{ path: 'login', component: LoginComponent },
 	{ path: 'register', component: RegisterComponent },
-	{ path: 'forgot', component: ForgotComponent },
+	{ path: 'forgot', component: ForgotComponent },	
+	{ path: 'about', component: AboutComponent },
 	// The new project page can only be accessed if you are logged in. If not logged in, LoginGuard redirects to /login
 	{ path: 'new-project', component: NewProjectComponent, canActivate: [LoginGuard] },
 	{ path: 'project/:id', component: EditorComponent, canActivate: [LoginGuard], pathMatch: 'prefix' }
