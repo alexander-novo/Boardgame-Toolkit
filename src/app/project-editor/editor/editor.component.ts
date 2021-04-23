@@ -589,7 +589,6 @@ export class TagDialogComponent {
 	public disabled = false;
 	public color: ThemePalette = 'primary';
 	public touchUi = false;
-
 	colorCtr: AbstractControl = new FormControl(null);
 
 	public options = [
@@ -620,7 +619,7 @@ export class TagDialogComponent {
 		this.dialogRef.close({
 			newTag: {
 				name: this.newTagForm.get("name").value
-			},
+			},			
 		});
 	}
 }
