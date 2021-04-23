@@ -3,9 +3,12 @@
 	<form [formGroup]="newTagForm">
 		<mat-form-field>
 			<mat-label>Name</mat-label>
-			<input required matInput [(ngModel)]="data.newTag.name" formControlName="name">
+			<input required matInput formControlName="name">
 			<mat-error *ngIf="newTagForm.get('name').hasError('required')">
 				Tag name is required.
+			</mat-error>
+			<mat-error *ngIf="newTagForm.get('name').hasError('uniqueTagName')">
+				Tag name must be unique.
 			</mat-error>
 		</mat-form-field>
 		<mat-form-field>

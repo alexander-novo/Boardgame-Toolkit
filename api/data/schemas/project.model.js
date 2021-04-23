@@ -34,20 +34,17 @@ const ProjectScheme = new Schema({
 			default: 0,
 		},
 		/*tags: [{
-			tagName: {type: String, required: false},
-			//maybe just have data and be of any type
+			index: {type: Number, required: true},
 			dataString: {type: String, required: false},
 			dataNumber: {type: Number, required: false},
+			dataBoolean: {type: Boolean, required: false},
 		}],*/
 		assetCollection: { type: Number, required: false },
 		hiddenFromPlayers: { type: Boolean, required: true, default: false },
 	}],
 	projectTags:[{
 		name: {type: String, required: true},
-		dataString: {type: String, required: false},
-		dataNumber: {type: Number, required: false},
-		assets: [{type: Number, required: false}],
-		//collections: {[type: Number, required: false]}, do after assets
+		//collections: {[type: Number, required: false]}, 
 	}],
 
 	assetCollections: [{
@@ -74,6 +71,13 @@ const ProjectScheme = new Schema({
 			default: 0,
 		},
 		hiddenFromPlayers: { type: Boolean, required: true, default: false },
+
+		/*tags: [{
+		index: {type: Number, required: true},
+		dataString: {type: String, required: false},
+		dataNumber: {type: Number, required: false},
+		dataBoolean: {type: Boolean, required: false},
+		}],*/
 	}],
 	camera: {
 		x: { type: Number, required: true, default: 0 },

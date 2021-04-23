@@ -2,14 +2,14 @@ import { Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA, MAT_DIALOG_SCROLL_STRATEGY_FACTORY } from '@angular/material/dialog';
 import { MatSelectionList } from '@angular/material/list';
 import { ActivatedRoute } from '@angular/router';
-import { Asset, AssetCollection, Project, ProjectService } from 'src/app/services/project.service';
+import { Asset, AssetCollection, Project, ProjectService, Tag } from 'src/app/services/project.service';
 import { NestedTreeControl } from '@angular/cdk/tree';
 import { MatTreeNestedDataSource } from '@angular/material/tree';
 import { ElementRef } from '@angular/core';
 import { fabric } from "fabric";
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSidenav } from '@angular/material/sidenav';
-import { AbstractControl, FormGroup, FormControl, Validators } from '@angular/forms';
+import { AbstractControl, FormGroup, FormControl, Validators, ValidatorFn } from '@angular/forms';
 import { FileValidator } from 'ngx-material-file-input';
 import { environment } from 'src/environments/environment';
 import { ThemePalette } from '@angular/material/core';
@@ -30,14 +30,8 @@ export class CollectionDialogData {
 	defaultSelection: Array<number>;
 }
 
-export class TagDialogData{
-	newTag: {
-		name: string,
-		//dataString: string,
-		//dataNumber: number,
-		//assets: Array<number>,
-	}
-	//assets: Array<{asset: Asset, index: number}>;
+export class TagDialogData {
+	tags: Tag[];
 }
 
 interface Drawable {
@@ -76,7 +70,6 @@ export class EditorComponent implements OnInit {
 	currentDragAsset: Drawable;
 	selectedNonDrawable = false;
 	isDraggingCanvas = false;
-	tags: {name: string}[] = []
 
 	@ViewChild('rightNav')
 	rightNav: MatSidenav;
@@ -463,25 +456,18 @@ export class EditorComponent implements OnInit {
 		});
 	}
 
-	newTag(){
-		let newTagName: string = '';
-		let tags = this.project.projectTags;
-		this.tags = tags;
+	newTag() {
 		const dialogRef = this.dialog.open(TagDialogComponent, {
-
 			width: '400px',
 			data: {
-				newTag: {
-					name: newTagName,
-				}
+				tags: this.project.projectTags
 			}
 		});
 
-		dialogRef.afterClosed().subscribe(({newTag})=> {
+		dialogRef.afterClosed().subscribe(({ newTag }) => {
 			if (newTag !== undefined) {
 				this.project.projectTags.push(newTag);
-				tags.push(newTag);
-				console.log(this.tags);
+				console.log(this.project.projectTags);
 				console.log("New Tag Uploaded! Check MongoDB");
 				this.projectService.saveProject(this.projectId, this.project).subscribe(
 					() => { this.snackBar.open("Project Saved", undefined, { duration: environment.editor.autoSaveBarDuration }); },
@@ -566,7 +552,6 @@ export class CollectionDialogComponent {
 		@Inject(MAT_DIALOG_DATA) public data: CollectionDialogData) { }
 
 
-
 	ngAfterViewInit() {
 		console.log(this.data);
 	}
@@ -587,34 +572,42 @@ export class CollectionDialogComponent {
 	}
 
 };
+
+function UniqueTagNameValidator(tags: Tag[]): ValidatorFn {
+	return (control: AbstractControl): { [key: string]: any } | null => {
+		const forbidden = tags.some((tag) => tag.name == control.value);
+		return forbidden ? { uniqueTagName: { value: control.value } } : null;
+	};
+}
+
 @Component({
 	selector: 'tag-dialog',
 	templateUrl: 'tag-dialog.component.html',
 })
-
-export class TagDialogComponent{
+export class TagDialogComponent {
 	//@ViewChild('tagList') tagList: MatSelectionList;
 	public disabled = false;
 	public color: ThemePalette = 'primary';
 	public touchUi = false;
 
-  	colorCtr: AbstractControl = new FormControl(null);
+	colorCtr: AbstractControl = new FormControl(null);
 
 	public options = [
 		{ value: true, label: 'True' },
 		{ value: false, label: 'False' }
 	];
 
-  	public listColors = ['primary', 'accent', 'warn'];
+	public listColors = ['primary', 'accent', 'warn'];
 
 	newTagForm = new FormGroup({
-		name: new FormControl('', [Validators.required, Validators.minLength(4)]),
+		name: new FormControl('', [Validators.required, UniqueTagNameValidator(this.data.tags)]),
 		//data: new FormControl('',)
 	});
 
 	constructor(
 		public dialogRef: MatDialogRef<TagDialogComponent>,
 		@Inject(MAT_DIALOG_DATA) public data: TagDialogData) { }
+
 
 	ngAfterViewInit() {
 		console.log(this.data);
@@ -625,10 +618,8 @@ export class TagDialogComponent{
 	}
 	onOkClick(): void {
 		this.dialogRef.close({
-			newTag:{
-				name: this.data.newTag.name,
-				//dataString: this.data.newTag.dataString
-				//dataNumber: this.data.newTag.dataNumber
+			newTag: {
+				name: this.newTagForm.get("name").value
 			},
 		});
 	}
