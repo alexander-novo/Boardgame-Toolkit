@@ -3,6 +3,24 @@ import { Injectable } from '@angular/core';
 import { FileInput } from 'ngx-material-file-input';
 import { RegisterService } from './register.service';
 
+export interface Region {
+	_id: string;
+	name?: string;
+	shape: 'square' | 'circle' | 'poly';
+	params: {
+		nonpoly?: {
+			originX: number;
+			originY: number;
+			scaleX: number;
+			scaleY: number;
+		};
+		points: {
+			x: number;
+			y: number;
+		}[];
+	};
+}
+
 export interface Asset {
 	_id: string;
 	name: string;
@@ -19,6 +37,12 @@ export interface Asset {
 	angle: number;
 	assetCollection?: number;
 	hiddenFromPlayers: boolean;
+	regionGroups: {
+		name?: string;
+		color?: string;
+		visible: boolean;
+		regions: Region[];
+	}[];
 }
 
 export interface AssetCollection {

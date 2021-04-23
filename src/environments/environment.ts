@@ -14,7 +14,8 @@ export const environment = {
 			minZoom: .04,
 			maxZoom: 20,
 			grid: 200,
-			zoomSpeed: .0025,
+			zoomSpeed: .002,
+			defaultRegionGroupColor: 'LimeGreen',
 		}
 	},
 	maxAssetSize: 4000000,

@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute } from '@angular/router';
-import { Subject } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Asset, Project, ProjectService } from 'src/app/services/project.service';
 import { environment } from 'src/environments/environment';

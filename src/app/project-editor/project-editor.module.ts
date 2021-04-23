@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { NgxDropzoneModule } from 'ngx-dropzone';
 import { MaterialFileInputModule } from 'ngx-material-file-input';
+import { ColorPickerModule } from 'ngx-color-picker';
 
 import { EditorComponent } from './editor/editor.component';
 import { CollectionDialogComponent } from './editor/collection-dialog.component';
@@ -22,6 +23,7 @@ import { WorkspaceComponent } from './workspace/workspace.component';
 		MaterialFileInputModule,
 		ReactiveFormsModule,
 		NgxDropzoneModule,
+		ColorPickerModule,
 	]
 })
 export class ProjectEditorModule { }

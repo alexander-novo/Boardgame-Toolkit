@@ -1,6 +1,5 @@
-import { Component, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, Output, ViewChild, ViewContainerRef } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { ActivatedRoute } from '@angular/router';
 import { Asset, AssetCollection, Project, ProjectService } from 'src/app/services/project.service';
 import { NestedTreeControl } from '@angular/cdk/tree';
 import { MatTreeNestedDataSource } from '@angular/material/tree';
@@ -11,7 +10,7 @@ import { MatSidenav } from '@angular/material/sidenav';
 import { environment } from 'src/environments/environment';
 import { CollectionDialogComponent } from './collection-dialog.component';
 import { AssetUploadDialogComponent } from './asset-upload-dialog.component';
-import { forkJoin, Subject, Subscription } from 'rxjs';
+import { forkJoin } from 'rxjs';
 import { EventEmitter } from '@angular/core';
 
 
@@ -33,6 +32,7 @@ interface Drawable {
 })
 export class EditorComponent implements OnInit {
 	eDisplayType = DisplayType;
+	environment = environment;
 
 	private _project: Project;
 	@Input()
@@ -376,7 +376,7 @@ export class EditorComponent implements OnInit {
 			.filter(({ asset }) => asset.assetCollection === undefined);
 		console.log("Assets: ", assets);
 		const dialogRef = this.dialog.open(CollectionDialogComponent, {
-			width: '400px',
+			width: '450px',
 			data: {
 				defaultSelection,
 				assets,
@@ -469,18 +469,35 @@ export class EditorComponent implements OnInit {
 
 	uploadAssetsPopup() {
 		const dialogRef = this.dialog.open(AssetUploadDialogComponent, {
-			width: '400px',
+			width: '450px',
 			data: {
 				collections: this.project.assetCollections.map((collection, index) => ({ collection, index })),
 			},
 		});
 
 		dialogRef.afterClosed().subscribe(
-			({ files, collection }) => {
-				console.log("Collection selected: " + collection);
-				this.uploadNewAssets(files, collection === -1, collection);
+			re => {
+				if (re !== undefined) {
+					let { files, collection } = re;
+					console.log("Collection selected: " + collection);
+					this.uploadNewAssets(files, collection === -1, collection);
+				}
 			}
 		)
 	}
 
+	newRegionGroup(asset: Asset): void {
+		asset.regionGroups.push({
+			regions: [],
+			visible: true,
+		});
+	}
+
+	asAsset(drawable: Drawable): Asset {
+		if (drawable.type == DisplayType.Asset) {
+			return drawable.ref as Asset;
+		} else {
+			throw new Error('Drawable not actually an asset!');
+		}
+	}
 }
