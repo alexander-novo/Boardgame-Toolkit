@@ -52,11 +52,11 @@ After downloading/setting up all the above requirements, you should create a new
 
 The following users have an AWS account:
 
-Name | Initial Password | Bucket Name
----- | ---------------- | -----------
-Casey | `o$aV8j+ETJ0f*Qy` | `boardgame-toolkit-assets-local-casey`
-Ryan | `GFlf6ocjyT*sJLs` | `boardgame-toolkit-assets-local-ryan`
-Tyler |                 | `boardgame-toolkit-assets-local-tyler`
+Name | Bucket Name
+---- | -----------
+Casey | `boardgame-toolkit-assets-local-casey`
+Ryan | `boardgame-toolkit-assets-local-ryan`
+Tyler | `boardgame-toolkit-assets-local-tyler`
 
 Login using the initial password (And your capitalised first name as a username) at https://574938411764.signin.aws.amazon.com/console. Use your bucket name when setting up your local testing environment variables. You should be able to view your bucket and the items in there after signing in.
 
