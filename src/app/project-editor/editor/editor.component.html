@@ -96,9 +96,10 @@
 				</mat-expansion-panel-header>
 				<mat-list>
 					<mat-list-item class="reduce-padding"
-						*ngFor="let group of asAsset(selectedElement)?.regionGroups; index as idx;">
-						<button mat-button class="group-name">
-							{{group.name || 'Region Group ' + (idx + 1)}}
+						*ngFor="let group of asAsset(selectedElement)?.regionGroups; index as index;">
+						<button mat-button class="group-name"
+							(click)="editRegionGroup.emit({asset: asAsset(selectedElement), index: index});">
+							{{group.name || 'Region Group ' + (index + 1)}}
 						</button>
 						<span style="flex: 1 1 auto;"></span>
 						<button mat-icon-button

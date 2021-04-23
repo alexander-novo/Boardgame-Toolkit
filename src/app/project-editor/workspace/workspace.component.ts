@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTabChangeEvent } from '@angular/material/tabs';
 import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs/operators';
-import { Asset, Project, ProjectService } from 'src/app/services/project.service';
+import { Asset, Project, ProjectService, RegionGroup } from 'src/app/services/project.service';
 import { environment } from 'src/environments/environment';
 
 @Component({
@@ -15,6 +16,8 @@ export class WorkspaceComponent implements OnInit {
 	project: Project;
 	projectId: string;
 	dirty = false;
+
+	editingRegionGroup?: { asset: Asset, index: number } = undefined;
 
 	private autosave: number;
 
@@ -72,5 +75,11 @@ export class WorkspaceComponent implements OnInit {
 			},
 			err => console.error(err)
 		)
+	}
+
+	tabChange(e: MatTabChangeEvent): void {
+		if (e.index == 0) {
+			this.editingRegionGroup = undefined;
+		}
 	}
 }

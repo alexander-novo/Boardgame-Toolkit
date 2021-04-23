@@ -21,6 +21,13 @@ export interface Region {
 	};
 }
 
+export interface RegionGroup {
+	name?: string;
+	color?: string;
+	visible: boolean;
+	regions: Region[];
+}
+
 export interface Asset {
 	_id: string;
 	name: string;
@@ -37,12 +44,7 @@ export interface Asset {
 	angle: number;
 	assetCollection?: number;
 	hiddenFromPlayers: boolean;
-	regionGroups: {
-		name?: string;
-		color?: string;
-		visible: boolean;
-		regions: Region[];
-	}[];
+	regionGroups: RegionGroup[];
 }
 
 export interface AssetCollection {

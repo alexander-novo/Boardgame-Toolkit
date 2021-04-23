@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, Output, ViewChild, ViewContainerRef } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { Asset, AssetCollection, Project, ProjectService } from 'src/app/services/project.service';
+import { Asset, AssetCollection, Project, ProjectService, Region, RegionGroup } from 'src/app/services/project.service';
 import { NestedTreeControl } from '@angular/cdk/tree';
 import { MatTreeNestedDataSource } from '@angular/material/tree';
 import { ElementRef } from '@angular/core';
@@ -51,7 +51,16 @@ export class EditorComponent implements OnInit {
 	@Output()
 	dirty = new EventEmitter<void>();
 
-	Drawables = new Map<{ type: DisplayType, id: string }, Drawable>();
+	@Output()
+	editRegionGroup = new EventEmitter<{ asset: Asset, index: number }>();
+
+	@ViewChild('myCanvas')
+	myCanvas: ElementRef<HTMLCanvasElement>;
+
+	@ViewChild('rightNav')
+	rightNav: MatSidenav;
+
+	drawables = new Map<{ type: DisplayType, id: string }, Drawable>();
 	treeControl = new NestedTreeControl<Drawable | { type: DisplayType, ref: Asset }>(
 		node => {
 			return node.type == DisplayType.Collection ?
@@ -61,17 +70,9 @@ export class EditorComponent implements OnInit {
 	);
 	dataSource = new MatTreeNestedDataSource<Drawable | Asset>();
 	selectedElement: Drawable;
-	@ViewChild('myCanvas')
-	myCanvas: ElementRef<HTMLCanvasElement>;
-	// context: CanvasRenderingContext2D;
 	canvas: fabric.Canvas;
-	turnNewAssetsIntoCollection = false;
-	currentDragAsset: Drawable;
 	selectedNonDrawable = false;
 	isDraggingCanvas = false;
-
-	@ViewChild('rightNav')
-	rightNav: MatSidenav;
 
 	hasChild = (_: number, node: Drawable | { type: DisplayType, ref: Asset }) =>
 		node.type == DisplayType.Collection &&
@@ -274,7 +275,7 @@ export class EditorComponent implements OnInit {
 
 		this.drawGridAndBounds();
 
-		this.Drawables = new Map(this.project.assets
+		this.drawables = new Map(this.project.assets
 			.filter(asset => asset.assetCollection === undefined)
 			.map((asset): Drawable => {
 				let re: Drawable = {
@@ -308,7 +309,7 @@ export class EditorComponent implements OnInit {
 					drawable,
 				]));
 
-		this.dataSource.data = Array.from(this.Drawables.values());
+		this.dataSource.data = Array.from(this.drawables.values());
 		this.canvas.renderAll();
 	}
 

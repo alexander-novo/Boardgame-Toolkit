@@ -1,7 +1,15 @@
-<mat-tab-group mat-align-tabs="center" class="full-tab-group">
+<mat-tab-group #editorTabNav mat-align-tabs="center" class="full-tab-group" (selectedTabChange)="tabChange($event)">
 	<mat-tab label="Project">
 		<project-editor [project]="project" [projectId]="projectId" (reloadProject)="refreshProject($event)"
-			(dirty)="this.dirty = true">
+			(dirty)="this.dirty = true"
+			(editRegionGroup)="editingRegionGroup = $event; editorTabNav.selectedIndex = 1;">
 		</project-editor>
+	</mat-tab>
+	<mat-tab *ngIf="editingRegionGroup">
+		<ng-template mat-tab-label>
+			<mat-icon class="tab-icon">map</mat-icon>
+			{{editingRegionGroup.asset.regionGroups[editingRegionGroup.index].name || 'Region Group ' +
+			(editingRegionGroup.index + 1)}}
+		</ng-template>
 	</mat-tab>
 </mat-tab-group>
