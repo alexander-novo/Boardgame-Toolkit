@@ -19,11 +19,13 @@ export interface Asset {
 	angle: number;
 	assetCollection?: number;
 	hiddenFromPlayers: boolean;
+	tags: number[];
 }
 
 export interface Tag{
 	_id: string;
 	name: string;
+	selected: true;
 	//dataNumber: number;
 	//dataString: string;
 }

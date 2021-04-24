@@ -33,18 +33,15 @@ const ProjectScheme = new Schema({
 			required: true,
 			default: 0,
 		},
-		/*tags: [{
+		tags: [{
 			index: {type: Number, required: true},
-			dataString: {type: String, required: false},
-			dataNumber: {type: Number, required: false},
-			dataBoolean: {type: Boolean, required: false},
-		}],*/
+		}],
 		assetCollection: { type: Number, required: false },
 		hiddenFromPlayers: { type: Boolean, required: true, default: false },
 	}],
 	projectTags:[{
 		name: {type: String, required: true},
-		//collections: {[type: Number, required: false]}, 
+	
 	}],
 
 	assetCollections: [{

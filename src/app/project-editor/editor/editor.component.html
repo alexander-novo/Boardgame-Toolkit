@@ -55,14 +55,20 @@
 					<mat-panel-title>Tags</mat-panel-title>
 				</mat-expansion-panel-header>
 
-				<mat-chip-list>
-					<mat-chip *ngFor= "let tag of project.projectTags">{{tag.name}}</mat-chip>
+				<mat-chip-list [multiple]="false"
+					
+					cdkDropList id="leftList"
+					[cdkDropListData]="project.projectTags"
+					(cdkDropListDropped)="tagDrop($event)"
+					[cdkDropListConnectedTo]="['rightList']">
+						<mat-chip cdkDrag *ngFor= "let tag of project.projectTags">
+							{{tag.name}}
+						</mat-chip>
 				</mat-chip-list> 
 
 				<button class= "tag-button" mat-raised-button color="primary" (click)="newTag()" id="new-tag">
 					New Tag
 				</button>
-
 				
 			</mat-expansion-panel>
 		</mat-accordion>
@@ -101,6 +107,21 @@
 				<mat-checkbox [(ngModel)]="selectedElement.ref.hiddenFromPlayers" (ngModelChange)="dirty = true">
 					Hide from players
 				</mat-checkbox>
+
+				<mat-expansion-panel>
+					<mat-expansion-panel-header>
+						<mat-panel-title>Tags</mat-panel-title>
+					</mat-expansion-panel-header>
+				<mat-chip-list 
+					cdkDropList id="rightList"
+					[cdkDropListConnectedTo]="['leftList']"
+					[cdkDropListData]="assetTags"
+				>					
+					<mat-chip *ngFor= "let tag of assetTags">{{tag.name}}</mat-chip>
+					<mat-chip>testing</mat-chip>
+				</mat-chip-list>
+				</mat-expansion-panel>
+
 			</mat-expansion-panel>
 		</mat-accordion>
 	</mat-sidenav>

@@ -13,6 +13,7 @@ import { AbstractControl, FormGroup, FormControl, Validators, ValidatorFn } from
 import { FileValidator } from 'ngx-material-file-input';
 import { environment } from 'src/environments/environment';
 import { ThemePalette } from '@angular/material/core';
+import {CdkDragDrop, moveItemInArray, transferArrayItem} from '@angular/cdk/drag-drop';
 
 
 
@@ -50,6 +51,7 @@ export class EditorComponent implements OnInit {
 	eDisplayType = DisplayType;
 	projectId: string;
 	project: Project;
+	
 	Drawables = new Map<{ type: DisplayType, id: string }, Drawable>();
 	treeControl = new NestedTreeControl<Drawable | { type: DisplayType, ref: Asset }>(
 		node => {
@@ -60,6 +62,8 @@ export class EditorComponent implements OnInit {
 	);
 	dataSource = new MatTreeNestedDataSource<Drawable | Asset>();
 	selectedElement: Drawable;
+	assetTags: Tag[];
+	asset: Asset;
 	@ViewChild('myCanvas')
 	myCanvas: ElementRef<HTMLCanvasElement>;
 	// context: CanvasRenderingContext2D;
@@ -398,6 +402,10 @@ export class EditorComponent implements OnInit {
 			this.selectedNonDrawable = false;
 			this.canvas.setActiveObject(item.image);
 			this.canvas.renderAll();
+			this.assetTags = this.asset.tags.map(idx => this.project.projectTags[idx]);
+			for(var i of this.asset.tags){
+				console.log(this.assetTags[i])
+			}
 		} else {
 			this.selectedNonDrawable = true;
 			this.canvas.discardActiveObject();
@@ -533,6 +541,19 @@ export class EditorComponent implements OnInit {
 		});
 	}
 
+  
+	tagDrop(event: CdkDragDrop<Tag[]>) {
+		if (event.previousContainer === event.container) {
+			moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
+    	}	 
+		else {
+      	transferArrayItem(event.previousContainer.data,
+                        event.container.data,
+                        event.previousIndex,
+                        event.currentIndex);
+		}
+
+	}
 }
 
 @Component({
