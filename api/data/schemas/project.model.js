@@ -4,17 +4,18 @@ const colorValidator = (v) => (/^#([0-9a-f]{3}){1,2}$/i).test(v)
 
 const RegionSchema = new Schema({
 	name: { type: String, required: false },
-	shape: { type: String, required: true, enum: ['square', 'circle', 'poly'] },
+	shape: { type: String, required: true, enum: ['Square', 'Circle', 'Polygon'] },
 	params: {
 		type: {
 			nonpoly: {
 				type: {
-					originX: { type: Number, required: true },
-					originY: { type: Number, required: true },
+					top: { type: Number, required: true },
+					left: { type: Number, required: true },
 					scaleX: { type: Number, required: true },
 					scaleY: { type: Number, required: true },
+					angle: { type: Number, required: true },
 				},
-				required: () => this.shape != 'poly',
+				required: () => this.shape != 'Polygon',
 			},
 			points: [{
 				x: { type: Number, required: true },

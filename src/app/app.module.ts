@@ -14,6 +14,7 @@ import { CommonAppModule } from './common-app/common-app.module';
 import { AngularMaterialModule } from './angular-material.module';
 import { TimeagoModule } from 'ngx-timeago';
 import { ProjectEditorModule } from './project-editor/project-editor.module';
+import { MAT_COLOR_FORMATS, NgxMatColorPickerModule, NGX_MAT_COLOR_FORMATS } from '@angular-material-components/color-picker';
 
 @NgModule({
 	declarations: [
@@ -32,7 +33,8 @@ import { ProjectEditorModule } from './project-editor/project-editor.module';
 			config: {
 				tokenGetter: () => localStorage.getItem("jwt"),
 			}
-		})
+		}),
+		NgxMatColorPickerModule,
 	],
 	providers: [
 		CookieService,
@@ -40,6 +42,7 @@ import { ProjectEditorModule } from './project-editor/project-editor.module';
 			provide: RECAPTCHA_SETTINGS,
 			useValue: { siteKey: "6LfMqD0aAAAAAF-0krIJHlcKKWIWFiH0LyiTXj0M" } as RecaptchaSettings,
 		},
+		{ provide: MAT_COLOR_FORMATS, useValue: NGX_MAT_COLOR_FORMATS }
 	],
 	bootstrap: [AppComponent],
 	schemas: [CUSTOM_ELEMENTS_SCHEMA],

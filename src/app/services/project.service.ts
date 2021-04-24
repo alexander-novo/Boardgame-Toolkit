@@ -4,15 +4,15 @@ import { FileInput } from 'ngx-material-file-input';
 import { RegisterService } from './register.service';
 
 export interface Region {
-	_id: string;
 	name?: string;
-	shape: 'square' | 'circle' | 'poly';
+	shape: 'Square' | 'Circle' | 'Polygon';
 	params: {
 		nonpoly?: {
-			originX: number;
-			originY: number;
+			top: number;
+			left: number;
 			scaleX: number;
 			scaleY: number;
+			angle: number;
 		};
 		points: {
 			x: number;

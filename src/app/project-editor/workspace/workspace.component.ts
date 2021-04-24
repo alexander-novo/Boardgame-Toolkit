@@ -35,7 +35,7 @@ export class WorkspaceComponent implements OnInit {
 		});
 	}
 
-	refreshProject(callback?: (param: { oldProject: Project, newAssets: { asset: Asset, index: number }[] }) => void) {
+	refreshProject(callback?: (param: { project: Project, oldProject: Project, newAssets: { asset: Asset, index: number }[] }) => void) {
 		if (this.autosave) {
 			clearInterval(this.autosave);
 			this.autosave = null;
@@ -54,12 +54,14 @@ export class WorkspaceComponent implements OnInit {
 						.map((asset, index) => ({ asset, index }))
 						.filter(({ asset, index }) => !oldProject.assets.some(oldAsset => oldAsset._id == asset._id));
 
-				return { oldProject, newAssets };
+				return { project, oldProject, newAssets };
 			}, this),
 		);
 
 		obs.subscribe(
 			obj => {
+				this.dirty = false;
+
 				// Auto save every 5 seconds if the project is dirty
 				this.autosave = window.setInterval(() => {
 					if (this.dirty) {

@@ -1,6 +1,6 @@
 <mat-sidenav-container (appDropZone)="onFileDrop($event)" autosize hasBackdrop="false">
 	<mat-sidenav mode="side" opened disableClose>
-		<mat-accordion>
+		<mat-accordion multi>
 			<mat-expansion-panel expanded id="assets-panel">
 				<mat-expansion-panel-header>
 					<mat-panel-title>Assets</mat-panel-title>
@@ -88,30 +88,32 @@
 					Hide from players
 				</mat-slide-toggle>
 			</mat-expansion-panel>
-			<mat-expansion-panel *ngIf="!!selectedElement && selectedElement.type == eDisplayType.Asset">
+			<mat-expansion-panel expanded *ngIf="!!selectedElement && selectedElement.type == eDisplayType.Asset">
 				<mat-expansion-panel-header>
 					<mat-panel-title>
 						Regions
 					</mat-panel-title>
 				</mat-expansion-panel-header>
 				<mat-list>
-					<mat-list-item class="reduce-padding"
-						*ngFor="let group of asAsset(selectedElement)?.regionGroups; index as index;">
-						<button mat-button class="group-name"
-							(click)="editRegionGroup.emit({asset: asAsset(selectedElement), index: index});">
-							{{group.name || 'Region Group ' + (index + 1)}}
-						</button>
-						<span style="flex: 1 1 auto;"></span>
-						<button mat-icon-button
-							[style.color]="group.color || environment.editor.workspace.defaultRegionGroupColor"
-							[(colorPicker)]="group.color" (colorPickerChange)="dirty.emit()"
-							cpUseRootViewContainer=true>
-							<mat-icon>colorize</mat-icon>
-						</button>
-						<button mat-icon-button (click)="group.visible = !group.visible; dirty.emit();">
-							<mat-icon>{{group.visible ? 'visibility' : 'visibility_off'}}</mat-icon>
-						</button>
-					</mat-list-item>
+					<div *ngFor="let group of asAsset(selectedElement)?.regionGroups; index as index;">
+						<mat-list-item class="reduce-padding">
+							<button mat-button class="group-name"
+								(click)="editRegionGroup.emit({asset: asAsset(selectedElement), index: index});">
+								{{group.name || 'Region Group ' + (index + 1)}}
+							</button>
+							<span style="flex: 1 1 auto;"></span>
+							<button mat-icon-button
+								[style.color]="group.color || environment.editor.regions.defaultRegionGroupColor"
+								[(colorPicker)]="group.color" (colorPickerChange)="dirty.emit()"
+								cpUseRootViewContainer=true>
+								<mat-icon>colorize</mat-icon>
+							</button>
+							<button mat-icon-button (click)="group.visible = !group.visible; dirty.emit();">
+								<mat-icon>{{group.visible ? 'visibility' : 'visibility_off'}}</mat-icon>
+							</button>
+						</mat-list-item>
+						<mat-divider></mat-divider>
+					</div>
 				</mat-list>
 				<button class="list-action-button" mat-raised-button color="primary"
 					(click)="newRegionGroup(asAsset(selectedElement))">

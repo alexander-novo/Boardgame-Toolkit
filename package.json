@@ -13,6 +13,7 @@
 	"main": "server.js",
 	"private": true,
 	"dependencies": {
+		"@angular-material-components/color-picker": "^5.0.2",
 		"@angular/animations": "~11.0.1",
 		"@angular/cdk": "^11.0.1",
 		"@angular/common": "~11.0.1",
@@ -30,6 +31,7 @@
 		"bcrypt": "^5.0.0",
 		"body-parser": "^1.19.0",
 		"cookie-parser": "^1.4.5",
+		"css-element-queries": "^1.2.3",
 		"express": "^4.17.1",
 		"express-jwt": "^6.0.0",
 		"fabric": "^4.4.0",

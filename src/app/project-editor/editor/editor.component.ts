@@ -30,7 +30,7 @@ interface Drawable {
 	templateUrl: './editor.component.html',
 	styleUrls: ['./editor.component.scss']
 })
-export class EditorComponent implements OnInit {
+export class EditorComponent {
 	eDisplayType = DisplayType;
 	environment = environment;
 
@@ -46,7 +46,7 @@ export class EditorComponent implements OnInit {
 	projectId: string;
 
 	@Output()
-	reloadProject = new EventEmitter<(param: { oldProject: Project, newAssets: { asset: Asset, index: number }[] }) => void>();
+	reloadProject = new EventEmitter<(param: { project: Project, oldProject: Project, newAssets: { asset: Asset, index: number }[] }) => void>();
 
 	@Output()
 	dirty = new EventEmitter<void>();
@@ -86,10 +86,6 @@ export class EditorComponent implements OnInit {
 		this.dataSource.data = [];
 	}
 
-	ngOnInit(): void {
-
-	}
-
 	onFileDrop(event: Array<File>) {
 		this.uploadNewAssets(event);
 	}
@@ -108,8 +104,9 @@ export class EditorComponent implements OnInit {
 						}, this)).subscribe(
 							() => {
 								this.reloadProject.emit(
-									({ newAssets }) => {
-										console.log("Exciting!", { newAssets, createNewCollection, collectionIndex });
+									({ project, newAssets }) => {
+										this._project = project;
+
 										if (createNewCollection) {
 											this.newCollection(newAssets.map(({ asset, index }) => index))
 										} else if (collectionIndex !== undefined) {
@@ -132,7 +129,6 @@ export class EditorComponent implements OnInit {
 		)
 	}
 
-
 	ngAfterViewInit(): void {
 		// Make canvas pixel size the same as it actually is on the DOM (css set to 100%)
 		let canvas = this.myCanvas.nativeElement;
@@ -145,6 +141,7 @@ export class EditorComponent implements OnInit {
 		fabric.Object.prototype.borderDashArray = [5, 5];
 		this.canvas = new fabric.Canvas(canvas, {
 			fireRightClick: true,
+			renderOnAddRemove: false,
 		});
 
 		// Disable context menu
@@ -180,7 +177,7 @@ export class EditorComponent implements OnInit {
 				if (vpt[4] >= totalWidth * zoom / 2) {
 					vpt[4] = totalWidth * zoom / 2;
 				} else if (vpt[4] < this.canvas.getWidth() - totalWidth * zoom / 2) {
-					vpt[4] = this.canvas.getWidth() - totalHeight * zoom / 2;
+					vpt[4] = this.canvas.getWidth() - totalWidth * zoom / 2;
 				}
 				if (vpt[5] >= totalHeight * zoom / 2) {
 					vpt[5] = totalHeight * zoom / 2;
@@ -195,6 +192,7 @@ export class EditorComponent implements OnInit {
 
 			// Let the workspace know the project is dirty
 			this.dirty.emit();
+			this.canvas.requestRenderAll();
 		});
 
 		this.canvas.on('mouse:down', opt => {
@@ -227,7 +225,7 @@ export class EditorComponent implements OnInit {
 					if (vpt[4] >= totalWidth * zoom / 2) {
 						vpt[4] = totalWidth * zoom / 2;
 					} else if (vpt[4] < this.canvas.getWidth() - totalWidth * zoom / 2) {
-						vpt[4] = this.canvas.getWidth() - totalHeight * zoom / 2;
+						vpt[4] = this.canvas.getWidth() - totalWidth * zoom / 2;
 					}
 					if (vpt[5] >= totalHeight * zoom / 2) {
 						vpt[5] = totalHeight * zoom / 2;
@@ -242,20 +240,18 @@ export class EditorComponent implements OnInit {
 				this.dirty.emit();
 
 				this.canvas.setCursor('grabbing');
-				this.canvas.setViewportTransform(this.canvas.viewportTransform);
 				this.canvas.requestRenderAll();
 			}
 		});
 
 		this.canvas.on('mouse:up', opt => {
-			this.canvas.setViewportTransform(this.canvas.viewportTransform);
 			this.isDraggingCanvas = false;
 			this.canvas.selection = true;
 
 			this.canvas.setCursor('default');
 
 			opt.e.preventDefault();
-		})
+		});
 
 		this.addProjectToCanvas();
 	}
@@ -334,7 +330,7 @@ export class EditorComponent implements OnInit {
 				stroke: 'Gainsboro',
 				selectable: false,
 				evented: false,
-				strokeWidth: 1,
+				strokeWidth: 3,
 			}));
 		}
 
@@ -343,7 +339,7 @@ export class EditorComponent implements OnInit {
 				stroke: 'Gainsboro',
 				selectable: false,
 				evented: false,
-				strokeWidth: 1,
+				strokeWidth: 3,
 			}));
 		}
 	}
@@ -416,27 +412,23 @@ export class EditorComponent implements OnInit {
 	}
 
 	loadDrawableImage(drawable: Drawable, url: string): void {
-		if (drawable.ref.position === undefined) {
-			drawable.ref.position = {
-				x: 0,
-				y: 0
-			}
+		drawable.ref.position ??= {
+			x: 0,
+			y: 0
 		}
-
-		if (drawable.ref.scale === undefined) {
-			drawable.ref.scale = {
-				x: 1,
-				y: 1
-			}
+		drawable.ref.scale ??= {
+			x: 1,
+			y: 1
 		}
-
-		drawable.ref.angle = drawable.ref.angle || 0;
+		drawable.ref.angle ??= 0;
 
 		fabric.Image.fromURL(url, img => {
 			drawable.image = img;
 
 			this.addDrawableEvents(drawable);
 			this.canvas.add(img);
+			console.log("Adding ", drawable);
+			this.canvas.requestRenderAll();
 		}, {
 			left: drawable.ref.position.x,
 			top: drawable.ref.position.y,

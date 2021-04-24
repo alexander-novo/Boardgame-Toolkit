@@ -1,0 +1,58 @@
+<mat-sidenav-container autosize hasBackdrop="false">
+	<mat-sidenav mode="side" opened disableClose>
+		<mat-accordion multi>
+			<mat-expansion-panel expanded id="regions-panel">
+				<mat-expansion-panel-header>
+					<mat-panel-title>Regions</mat-panel-title>
+				</mat-expansion-panel-header>
+
+				<mat-selection-list multiple="false" (selectionChange)="selectRegion($event)">
+					<div *ngFor="let drawable of drawables">
+						<mat-list-option [value]="drawable">
+							{{drawable.region.name || 'New Region'}}
+						</mat-list-option>
+						<mat-divider></mat-divider>
+					</div>
+				</mat-selection-list>
+				<mat-button-toggle-group #shapeSelection="matButtonToggleGroup" [(ngModel)]="newRegionType">
+					<mat-button-toggle value="Square" aria-label="Square Region">
+						<mat-icon>crop_square</mat-icon>
+					</mat-button-toggle>
+					<mat-button-toggle value="Circle" aria-label="Circular Region">
+						<mat-icon>radio_button_unchecked</mat-icon>
+					</mat-button-toggle>
+					<mat-button-toggle value="Polygon" disabled aria-label="Polygonal Region">
+						<mat-icon>grade</mat-icon>
+					</mat-button-toggle>
+				</mat-button-toggle-group>
+				<button class="list-action-button" mat-raised-button color="primary" (click)="newRegion()"
+					[disabled]="!shapeSelection.value">
+					Add New {{shapeSelection.value}} Region
+				</button>
+			</mat-expansion-panel>
+			<mat-expansion-panel expanded id="regions-panel">
+				<mat-expansion-panel-header>
+					<mat-panel-title style="white-space: nowrap;">Group Details</mat-panel-title>
+					<mat-panel-description class="long-text">{{group?.name || 'Region Group ' + (index + 1)}}
+					</mat-panel-description>
+				</mat-expansion-panel-header>
+
+				<mat-form-field>
+					<mat-label>Name</mat-label>
+					<input matInput [ngModel]="group?.name || 'Region Group ' + (index + 1)"
+						(ngModelChange)="group.name = $event; dirty.emit();">
+				</mat-form-field>
+				<mat-form-field>
+					<mat-label>Display Color</mat-label>
+					<input matInput [ngxMatColorPicker]="picker" [formControl]="colorCtr">
+					<ngx-mat-color-toggle matSuffix [for]="picker"></ngx-mat-color-toggle>
+					<ngx-mat-color-picker #picker color="primary">
+					</ngx-mat-color-picker>
+				</mat-form-field>
+			</mat-expansion-panel>
+		</mat-accordion>
+	</mat-sidenav>
+	<mat-sidenav-content id="toolkit-canvas-container">
+		<canvas #myCanvas id="toolkit-canvas"></canvas>
+	</mat-sidenav-content>
+</mat-sidenav-container>

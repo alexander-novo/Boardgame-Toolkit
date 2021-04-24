@@ -12,9 +12,11 @@ import { AssetUploadDialogComponent } from './editor/asset-upload-dialog.compone
 import { AngularMaterialModule } from '../angular-material.module';
 import { DirectivesModule } from '../directives/directives.module';
 import { WorkspaceComponent } from './workspace/workspace.component';
+import { RegionEditorComponent } from './region-editor/region-editor.component';
+import { NgxMatColorPickerModule } from '@angular-material-components/color-picker';
 
 @NgModule({
-	declarations: [EditorComponent, CollectionDialogComponent, AssetUploadDialogComponent, WorkspaceComponent],
+	declarations: [EditorComponent, CollectionDialogComponent, AssetUploadDialogComponent, WorkspaceComponent, RegionEditorComponent],
 	imports: [
 		CommonModule,
 		AngularMaterialModule,
@@ -24,6 +26,7 @@ import { WorkspaceComponent } from './workspace/workspace.component';
 		ReactiveFormsModule,
 		NgxDropzoneModule,
 		ColorPickerModule,
+		NgxMatColorPickerModule,
 	]
 })
 export class ProjectEditorModule { }
