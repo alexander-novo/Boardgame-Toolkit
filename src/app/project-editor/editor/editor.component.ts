@@ -402,6 +402,7 @@ export class EditorComponent implements OnInit {
 			this.selectedNonDrawable = false;
 			this.canvas.setActiveObject(item.image);
 			this.canvas.renderAll();
+			this.assetTags = [];
 			this.assetTags = this.asset.tags.map(idx => this.project.projectTags[idx]);
 			for(var i of this.asset.tags){
 				console.log(this.assetTags[i])
@@ -551,6 +552,7 @@ export class EditorComponent implements OnInit {
                         event.container.data,
                         event.previousIndex,
                         event.currentIndex);
+		console.log("dropping off tag from to assetTags")
 		}
 
 	}
