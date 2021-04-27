@@ -96,8 +96,8 @@
 
 	<div class="container">
 		<h2 style="text-align: center;">Project Poster</h2>
-		<div style="display: flex; justify-content: center; align-items: center;">
-			<img src="assets/img/project-poster.png" class="img-responsive" alt="" width="1000px" height="800px">
+		<div style="display: flex; justify-content: center; align-items: center;" *ngFor="let image of album; let i=index">
+			<img src="image.thumb" (click)="open(i)">
 		</div>
 	</div>
 

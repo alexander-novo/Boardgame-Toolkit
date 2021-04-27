@@ -14,6 +14,7 @@ import { CommonAppModule } from './common-app/common-app.module';
 import { AngularMaterialModule } from './angular-material.module';
 import { TimeagoModule } from 'ngx-timeago';
 import { ProjectEditorModule } from './project-editor/project-editor.module';
+import { LightboxModule } from 'ngx-lightbox';
 
 @NgModule({
 	declarations: [
@@ -28,6 +29,7 @@ import { ProjectEditorModule } from './project-editor/project-editor.module';
 		BrowserAnimationsModule,
 		HttpClientModule,
 		TimeagoModule.forRoot(),
+		LightboxModule,
 		JwtModule.forRoot({
 			config: {
 				tokenGetter: () => localStorage.getItem("jwt"),
