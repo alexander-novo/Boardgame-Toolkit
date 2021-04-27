@@ -7,10 +7,22 @@
 	<mat-tab *ngIf="editingRegionGroup">
 		<ng-template mat-tab-label>
 			<mat-icon class="tab-icon">map</mat-icon>
-			{{editingRegionGroup.asset.regionGroups[editingRegionGroup.index].name || 'Region Group ' +
-			(editingRegionGroup.index + 1)}}
+			{{editingRegionGroup.asset.name}}/{{editingRegionGroup.asset.regionGroups[editingRegionGroup.index].name
+			|| 'Region Group ' + (editingRegionGroup.index + 1)}}
 		</ng-template>
 		<app-region-editor [assetGroupIndex]="editingRegionGroup" (dirty)="dirty = true">
 		</app-region-editor>
+	</mat-tab>
+	<mat-tab>
+		<ng-template mat-tab-label>
+			<mat-icon class="tab-icon">compare_arrows</mat-icon>
+			State Machines
+		</ng-template>
+	</mat-tab>
+	<mat-tab>
+		<ng-template mat-tab-label>
+			<mat-icon class="tab-icon">code</mat-icon>
+			Rules
+		</ng-template>
 	</mat-tab>
 </mat-tab-group>
