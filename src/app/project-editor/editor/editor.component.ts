@@ -484,6 +484,7 @@ export class EditorComponent {
 			regions: [],
 			visible: true,
 		});
+		this.dirty.emit();
 	}
 
 	asAsset(drawable: Drawable): Asset {

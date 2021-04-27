@@ -8,20 +8,23 @@
 
 				<mat-selection-list multiple="false" (selectionChange)="selectRegion($event)">
 					<div *ngFor="let drawable of drawables">
-						<mat-list-option [value]="drawable">
+						<mat-list-option [value]="drawable" matTooltip="Edit Region" matTooltipPosition="above">
 							{{drawable.region.name || 'New Region'}}
 						</mat-list-option>
 						<mat-divider></mat-divider>
 					</div>
 				</mat-selection-list>
 				<mat-button-toggle-group #shapeSelection="matButtonToggleGroup" [(ngModel)]="newRegionType">
-					<mat-button-toggle value="Square" aria-label="Square Region">
+					<mat-button-toggle value="Square" aria-label="Square Region" matTooltip="Square Region"
+						matTooltipPosition="above">
 						<mat-icon>crop_square</mat-icon>
 					</mat-button-toggle>
-					<mat-button-toggle value="Circle" aria-label="Circular Region">
+					<mat-button-toggle value="Circle" aria-label="Circular Region" matTooltip="Circular Region"
+						matTooltipPosition="above">
 						<mat-icon>radio_button_unchecked</mat-icon>
 					</mat-button-toggle>
-					<mat-button-toggle value="Polygon" disabled aria-label="Polygonal Region">
+					<mat-button-toggle value="Polygon" disabled aria-label="Polygonal Region"
+						matTooltip="Polygonal Region" matTooltipPosition="above">
 						<mat-icon>grade</mat-icon>
 					</mat-button-toggle>
 				</mat-button-toggle-group>
@@ -45,7 +48,8 @@
 				<mat-form-field>
 					<mat-label>Display Color</mat-label>
 					<input matInput [ngxMatColorPicker]="picker" [formControl]="colorCtr">
-					<ngx-mat-color-toggle matSuffix [for]="picker"></ngx-mat-color-toggle>
+					<ngx-mat-color-toggle matSuffix [for]="picker" matTooltip="Change color of regions in this group">
+					</ngx-mat-color-toggle>
 					<ngx-mat-color-picker #picker color="primary">
 					</ngx-mat-color-picker>
 				</mat-form-field>

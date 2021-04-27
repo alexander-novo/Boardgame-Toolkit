@@ -84,7 +84,8 @@
 				<mat-slider min=0 max=2 step=.01 thumbLabel [(ngModel)]="selectedElement.image.scaleX"
 					(ngModelChange)="selectedElement.ref.scale.x = selectedElement.ref.scale.y = selectedElement.image.scaleY = selectedElement.image.scaleX; canvas.renderAll(); dirty.emit();">
 				</mat-slider>
-				<mat-slide-toggle [(ngModel)]="selectedElement.ref.hiddenFromPlayers" (ngModelChange)="dirty.emit();">
+				<mat-slide-toggle [(ngModel)]="selectedElement.ref.hiddenFromPlayers" (ngModelChange)="dirty.emit();"
+					[matTooltip]="'When enabled, players can\'t see this ' + selectedElement.type.toLowerCase()">
 					Hide from players
 				</mat-slide-toggle>
 			</mat-expansion-panel>
@@ -98,19 +99,31 @@
 					<div *ngFor="let group of asAsset(selectedElement)?.regionGroups; index as index;">
 						<mat-list-item class="reduce-padding">
 							<button mat-button class="group-name"
-								(click)="editRegionGroup.emit({asset: asAsset(selectedElement), index: index});">
+								(click)="editRegionGroup.emit({asset: asAsset(selectedElement), index: index});"
+								matTooltip="Open in region group editor" matTooltipPosition="above">
 								{{group.name || 'Region Group ' + (index + 1)}}
 							</button>
 							<span style="flex: 1 1 auto;"></span>
 							<button mat-icon-button
 								[style.color]="group.color || environment.editor.regions.defaultRegionGroupColor"
 								[(colorPicker)]="group.color" (colorPickerChange)="dirty.emit()"
-								cpUseRootViewContainer=true>
+								cpUseRootViewContainer=true matTooltip="Change color of regions in this group"
+								matTooltipPosition="above">
 								<mat-icon>colorize</mat-icon>
 							</button>
-							<button mat-icon-button (click)="group.visible = !group.visible; dirty.emit();">
-								<mat-icon>{{group.visible ? 'visibility' : 'visibility_off'}}</mat-icon>
+							<button mat-icon-button [matMenuTriggerFor]="regionGroupMenu">
+								<mat-icon>more_vert</mat-icon>
 							</button>
+							<mat-menu #regionGroupMenu="matMenu">
+								<button mat-menu-item (click)="group.visible = !group.visible; dirty.emit();">
+									<mat-icon>{{group.visible ? 'visibility' : 'visibility_off'}}</mat-icon>
+									Toggle Visibility
+								</button>
+								<button mat-menu-item (click)="asAsset(selectedElement).regionGroups.splice(index, 1)">
+									<mat-icon>delete</mat-icon>
+									Delete
+								</button>
+							</mat-menu>
 						</mat-list-item>
 						<mat-divider></mat-divider>
 					</div>
