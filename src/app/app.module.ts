@@ -15,6 +15,7 @@ import { AngularMaterialModule } from './angular-material.module';
 import { TimeagoModule } from 'ngx-timeago';
 import { ProjectEditorModule } from './project-editor/project-editor.module';
 import { MAT_COLOR_FORMATS, NgxMatColorPickerModule, NGX_MAT_COLOR_FORMATS } from '@angular-material-components/color-picker';
+import { MonacoEditorModule } from '@sentinel-one/ngx-monaco-editor';
 
 @NgModule({
 	declarations: [
@@ -35,6 +36,7 @@ import { MAT_COLOR_FORMATS, NgxMatColorPickerModule, NGX_MAT_COLOR_FORMATS } fro
 			}
 		}),
 		NgxMatColorPickerModule,
+		MonacoEditorModule.forRoot(),
 	],
 	providers: [
 		CookieService,

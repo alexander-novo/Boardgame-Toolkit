@@ -14,6 +14,7 @@ import { DirectivesModule } from '../directives/directives.module';
 import { WorkspaceComponent } from './workspace/workspace.component';
 import { RegionEditorComponent } from './region-editor/region-editor.component';
 import { NgxMatColorPickerModule } from '@angular-material-components/color-picker';
+import { MonacoEditorModule } from '@sentinel-one/ngx-monaco-editor';
 
 @NgModule({
 	declarations: [EditorComponent, CollectionDialogComponent, AssetUploadDialogComponent, WorkspaceComponent, RegionEditorComponent],
@@ -27,6 +28,7 @@ import { NgxMatColorPickerModule } from '@angular-material-components/color-pick
 		NgxDropzoneModule,
 		ColorPickerModule,
 		NgxMatColorPickerModule,
+		MonacoEditorModule,
 	]
 })
 export class ProjectEditorModule { }

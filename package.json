@@ -26,6 +26,7 @@
 		"@angular/platform-browser-dynamic": "~11.0.1",
 		"@angular/router": "~11.0.1",
 		"@auth0/angular-jwt": "^5.0.2",
+		"@sentinel-one/ngx-monaco-editor": "^9.0.1",
 		"aws-sdk": "^2.865.0",
 		"axios": "^0.21.1",
 		"bcrypt": "^5.0.0",

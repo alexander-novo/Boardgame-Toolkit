@@ -1,5 +1,5 @@
 <mat-tab-group #editorTabNav mat-align-tabs="center" class="full-tab-group" (selectedTabChange)="tabChange($event)">
-	<mat-tab label="Project">
+	<mat-tab label=" Project">
 		<project-editor [project]="project" [projectId]="projectId" (reloadProject)="refreshProject($event)"
 			(dirty)="dirty = true" (editRegionGroup)="editingRegionGroup = $event; editorTabNav.selectedIndex = 1;">
 		</project-editor>
@@ -7,7 +7,7 @@
 	<mat-tab *ngIf="editingRegionGroup">
 		<ng-template mat-tab-label>
 			<mat-icon class="tab-icon">map</mat-icon>
-			{{editingRegionGroup.asset.name}}/{{editingRegionGroup.asset.regionGroups[editingRegionGroup.index].name
+			{{editingRegionGroup.asset.name}} - {{editingRegionGroup.asset.regionGroups[editingRegionGroup.index].name
 			|| 'Region Group ' + (editingRegionGroup.index + 1)}}
 		</ng-template>
 		<app-region-editor [assetGroupIndex]="editingRegionGroup" (dirty)="dirty = true">
@@ -23,6 +23,11 @@
 		<ng-template mat-tab-label>
 			<mat-icon class="tab-icon">code</mat-icon>
 			Rules
+		</ng-template>
+		<ng-template matTabContent>
+			<ngx-monaco-editor class="code-editor" automaticLayout [options]="editorOptions" [(ngModel)]="code"
+				style="height:100%">
+			</ngx-monaco-editor>
 		</ng-template>
 	</mat-tab>
 </mat-tab-group>
