@@ -1,4 +1,4 @@
-import { Component, Input, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, Input, Output, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Asset, AssetCollection, Project, ProjectService, RegionGroup } from 'src/app/services/project.service';
 import { NestedTreeControl } from '@angular/cdk/tree';
@@ -29,7 +29,7 @@ interface Drawable {
 @Component({
 	selector: 'project-editor',
 	templateUrl: './editor.component.html',
-	styleUrls: ['./editor.component.scss']
+	styleUrls: ['./editor.component.scss'],
 })
 export class EditorComponent {
 	eDisplayType = DisplayType;

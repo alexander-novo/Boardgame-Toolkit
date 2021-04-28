@@ -1,7 +1,8 @@
 import { Color, stringInputToObject } from '@angular-material-components/color-picker';
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild } from '@angular/core';
 import { AbstractControl, FormControl } from '@angular/forms';
 import { MatSelectionListChange } from '@angular/material/list';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ResizeSensor } from 'css-element-queries';
 import { fabric } from "fabric";
 import { environment } from 'src/environments/environment';
@@ -61,19 +62,22 @@ export class RegionEditorComponent {
 	isDraggingCanvas = false;
 	newRegionType: 'Square' | 'Circle' | 'Polygon';
 	selectedRegion: DrawableRegion;
+	copiedRegion: DrawableRegion;
 	drawables: DrawableRegion[] = [];
 
 	// TODO: look into destroying this
 	private resizeSensor: ResizeSensor;
 
-	constructor() { }
+	constructor(private snackBar: MatSnackBar) { }
 
+	// Initialization of components
 	ngAfterViewInit(): void {
 		// Make canvas pixel size the same as it actually is on the DOM (css set to 100%)
 		let canvas = this.myCanvas.nativeElement;
 		canvas.width = canvas.offsetWidth;
 		canvas.height = canvas.offsetHeight;
 
+		// Needed because the canvas resizes as the tab is switched
 		this.resizeSensor = new ResizeSensor(canvas, () => {
 			let diffWidth = canvas.offsetWidth - canvas.width;
 			let diffHeight = canvas.offsetHeight - canvas.height;
@@ -84,15 +88,19 @@ export class RegionEditorComponent {
 			this.canvas.setWidth(canvas.width);
 			this.canvas.setHeight(canvas.height);
 
+			// Leave the camera looking at the same spot and expand it equally in both directions
 			let vpt = this.canvas.viewportTransform;
 			vpt[4] += diffWidth / 2;
 			vpt[5] += diffHeight / 2;
 		});
 
+		// Set defaults
 		fabric.Object.prototype.borderColor = 'LimeGreen';
 		fabric.Object.prototype.cornerColor = 'black';
 		fabric.Object.prototype.borderScaleFactor = 2;
 		fabric.Object.prototype.borderDashArray = [5, 5];
+		// We need fireRightClick for right click panning
+		// renderOnAddRemove set to false for performance
 		this.canvas = new fabric.Canvas(canvas, {
 			fireRightClick: true,
 			renderOnAddRemove: false,
@@ -106,6 +114,7 @@ export class RegionEditorComponent {
 			});
 		}, 1000);
 
+		// Load the asset that this region group is for
 		fabric.Image.fromURL(this.asset.url, img => {
 			this.assetImg = img;
 
@@ -128,12 +137,12 @@ export class RegionEditorComponent {
 		let initialVpt = this.canvas.viewportTransform;
 		initialVpt[4] = this.canvas.width / 2;
 		initialVpt[5] = this.canvas.height / 2;
-		console.log("Initial viewport: ", this.canvas.viewportTransform);
 
 		this.canvas.on('selection:cleared', opt => {
 			this.selectRegion = null;
 		});
 
+		// Zoom using mouse wheel
 		this.canvas.on('mouse:wheel', opt => {
 			let e = (opt.e as WheelEvent);
 			let delta = e.deltaY;
@@ -147,8 +156,10 @@ export class RegionEditorComponent {
 			e.preventDefault();
 			e.stopPropagation();
 
+			// ZoomToPoint used to allow people to zoom into other points besides center of screen
 			this.canvas.zoomToPoint(new fabric.Point(e.offsetX, e.offsetY), zoom);
 
+			// Set good bounds based on how far we are zoomed out
 			let vpt = this.canvas.viewportTransform;
 			if (zoom <= canvas.width / assetWidth) {
 				vpt[4] = Math.min(Math.max(vpt[4], assetWidth * zoom / 2), canvas.width - assetWidth * zoom / 2);
@@ -178,6 +189,7 @@ export class RegionEditorComponent {
 			}
 		});
 
+		// Pan using right click
 		this.canvas.on('mouse:move', opt => {
 			let e = (opt.e as MouseEvent);
 
@@ -189,6 +201,7 @@ export class RegionEditorComponent {
 				let vpt = this.canvas.viewportTransform;
 				vpt[4] += e.movementX;
 				vpt[5] += e.movementY;
+				// Same bounds as above
 				if (zoom <= canvas.width / assetWidth) {
 					vpt[4] = Math.min(Math.max(vpt[4], assetWidth * zoom / 2), canvas.width - assetWidth * zoom / 2);
 				} else {
@@ -207,7 +220,6 @@ export class RegionEditorComponent {
 		});
 
 		this.canvas.on('mouse:up', opt => {
-			this.canvas.setViewportTransform(this.canvas.viewportTransform);
 			this.isDraggingCanvas = false;
 			this.canvas.selection = true;
 
@@ -217,6 +229,8 @@ export class RegionEditorComponent {
 		});
 	}
 
+	// Refresh the entire canvas and start over by adding the entire
+	// group as it exists in the project to the canvas.
 	addGroupToCanvas() {
 		this.canvas.clear();
 		this.drawables = [];
@@ -225,6 +239,7 @@ export class RegionEditorComponent {
 		this.canvas.requestRenderAll();
 	}
 
+	// Called from a variety of places, such as adding a new region or loading all regions initially.
 	addRegionToCanvas(region: Region) {
 		let shape: fabric.Rect | fabric.Circle;
 		const globalOptions: fabric.IRectOptions = {
@@ -261,6 +276,8 @@ export class RegionEditorComponent {
 			this.selectedRegion = drawable;
 		});
 
+		// Modified when changes are finished i.e. user unclicks.
+		// TODO: need to change for poly eventually.
 		shape.on('modified', e => {
 			if (region.shape != 'Polygon') {
 				region.params.nonpoly = {
@@ -278,6 +295,7 @@ export class RegionEditorComponent {
 		this.canvas.add(shape);
 	}
 
+	// Called when new region button is clicked.
 	newRegion() {
 		let newRegion: Region = {
 			shape: this.newRegionType,
@@ -296,13 +314,33 @@ export class RegionEditorComponent {
 		this.addRegionToCanvas(newRegion);
 		this.canvas.requestRenderAll();
 		this.dirty.emit();
-
-		console.log("Added new region: ", this.group.regions, ", ", this.asset);
 	}
 
+	// Called from the list of regions on the left navbar.
+	// Actual selection code is handled in an 'object:selected' event handler in addRegionToCanvas().
 	selectRegion(selectionChange: MatSelectionListChange) {
-		console.log('Selected: ', selectionChange.source.selectedOptions.selected[0]?.value);
+		// We'll call that code by setting the active object.
 		this.canvas.setActiveObject(selectionChange.source.selectedOptions.selected[0]?.value.img);
 		this.canvas.requestRenderAll();
+	}
+
+	// Keydown listener for copy/paste support.
+	@HostListener('window:keydown', ['$event'])
+	onKeyDown(e: KeyboardEvent) {
+		if (e.ctrlKey && e.key == 'c' && this.selectedRegion) {
+			this.copiedRegion = this.selectedRegion;
+			this.snackBar.open('Region \'' + (this.selectedRegion.region.name || 'New Region' + '\' Copied!'), null, {
+				duration: 2000,
+			});
+		} else if (e.ctrlKey && e.key == 'v' && this.copiedRegion) {
+			// God javascript is awful. The best way to deep copy is to stringify as json and parse.
+			// 🤮
+			// Need to deep copy, otherwise changing the params of the new region will change the params of the old one.
+			let newRegion: Region = JSON.parse(JSON.stringify(this.copiedRegion.region));
+			this.group.regions.push(newRegion);
+			this.addRegionToCanvas(newRegion);
+			this.canvas.requestRenderAll();
+			this.dirty.emit();
+		}
 	}
 }
