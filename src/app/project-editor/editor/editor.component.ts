@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA, MAT_DIALOG_SCROLL_STRATEGY_FACTORY } from '@angular/material/dialog';
 import { MatSelectionList } from '@angular/material/list';
 import { ActivatedRoute } from '@angular/router';
@@ -51,6 +51,7 @@ export class EditorComponent implements OnInit {
 	eDisplayType = DisplayType;
 	projectId: string;
 	project: Project;
+	asset: Asset;
 	
 	Drawables = new Map<{ type: DisplayType, id: string }, Drawable>();
 	treeControl = new NestedTreeControl<Drawable | { type: DisplayType, ref: Asset }>(
@@ -63,7 +64,6 @@ export class EditorComponent implements OnInit {
 	dataSource = new MatTreeNestedDataSource<Drawable | Asset>();
 	selectedElement: Drawable;
 	assetTags: Tag[];
-	asset: Asset;
 	@ViewChild('myCanvas')
 	myCanvas: ElementRef<HTMLCanvasElement>;
 	// context: CanvasRenderingContext2D;
@@ -86,7 +86,8 @@ export class EditorComponent implements OnInit {
 		private route: ActivatedRoute,
 		private projectService: ProjectService,
 		private dialog: MatDialog,
-		private snackBar: MatSnackBar
+		private snackBar: MatSnackBar,
+		private cdRef: ChangeDetectorRef
 	) {
 		this.dataSource.data = [];
 	}
@@ -162,6 +163,9 @@ export class EditorComponent implements OnInit {
 			() => { }
 		);
 	}
+	ngAfterViewChecked() {
+		this.cdRef.detectChanges();
+	 }
 
 	ngAfterViewInit(): void {
 		// Make canvas pixel size the same as it actually is on the DOM (css set to 100%)
@@ -396,22 +400,17 @@ export class EditorComponent implements OnInit {
 				return 'collections'
 		}
 	}
-
 	select(item: Drawable | { type: DisplayType, ref: Asset }): void {
 		if ("image" in item) {
 			this.selectedNonDrawable = false;
 			this.canvas.setActiveObject(item.image);
 			this.canvas.renderAll();
-			this.assetTags = [];
-			this.assetTags = this.asset.tags.map(idx => this.project.projectTags[idx]);
-			for(var i of this.asset.tags){
-				console.log(this.assetTags[i])
-			}
 		} else {
 			this.selectedNonDrawable = true;
 			this.canvas.discardActiveObject();
 			this.selectedNonDrawable = false;
 			this.canvas.renderAll();
+			console.log("something")
 		}
 	}
 
@@ -523,7 +522,9 @@ export class EditorComponent implements OnInit {
 	addDrawableEvents(drawable: Drawable): void {
 		drawable.image.on('selected', e => {
 			this.selectedElement = drawable;
-
+			console.log('selecty');
+			console.log(this.asset.tags);
+			this.assetTags = this.asset.tags.map(idx => this.project.projectTags[idx]);
 			this.rightNav.open();
 		});
 
@@ -646,3 +647,7 @@ export class TagDialogComponent {
 		});
 	}
 }
+function ngAfterViewChecked() {
+	throw new Error('Function not implemented.');
+}
+

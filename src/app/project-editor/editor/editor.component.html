@@ -117,8 +117,8 @@
 				cdkDropList id="rightList"
 				[cdkDropListConnectedTo]="['leftList']"
 				(cdkDropListDropped)="tagDrop($event)"
-				[cdkDropListData]="this.assetTags">
-				<mat-chip *ngFor= "let tag of this.assetTags">{{tag.name}}</mat-chip>
+				[cdkDropListData]="assetTags">
+				<mat-chip *ngFor= "let tag of assetTags">{{tag.name}}</mat-chip>
 				<mat-chip>testing</mat-chip>
 			</mat-chip-list>
 			</mat-expansion-panel>
