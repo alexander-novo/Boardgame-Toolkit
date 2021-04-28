@@ -53,7 +53,7 @@ export class EditorComponent {
 	dirty = new EventEmitter<void>();
 
 	@Output()
-	editRegionGroup = new EventEmitter<{ asset: Asset, index: number }>();
+	editRegionGroup = new EventEmitter<{ regionGroup: { asset: Asset, index: number }, callback: (() => void) }>();
 
 	@ViewChild('myCanvas')
 	myCanvas: ElementRef<HTMLCanvasElement>;
@@ -497,7 +497,6 @@ export class EditorComponent {
 					(regionGroup, groupIndex) => regionGroup.forEach(
 						region => {
 							region.visible = (drawable.ref as Asset).regionGroups[groupIndex].visible;
-							console.log("Setting region to ", region.visible);
 						}));
 
 				// Need to set dirty flag, otherwise Fabric will assume that each invisible
@@ -578,6 +577,24 @@ export class EditorComponent {
 			}
 		)
 		// Must be marked dirty so that group sub-objects get updated
+		this.selectedElement.image.dirty = true;
+		this.canvas.requestRenderAll();
+	}
+
+	regionGroupEditedCallback(): () => void {
+		return () => {
+			// In the region editor, we may have changed the number of regions in a region group.
+			// There should be a better way to do this, but I'm crunched on time so
+			// instead I'm just going to reload the whole project. 🤷
+			this.addProjectToCanvas();
+		};
+	}
+
+	changeGroupVisibility(regionGroupIndex: number): void {
+		let group = (this.selectedElement.ref as Asset).regionGroups[regionGroupIndex];
+		group.visible = !group.visible;
+
+		this.selectedElement.regionGroups[regionGroupIndex].forEach(regionImg => regionImg.visible = group.visible);
 		this.selectedElement.image.dirty = true;
 		this.canvas.requestRenderAll();
 	}

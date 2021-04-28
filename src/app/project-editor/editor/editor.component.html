@@ -99,7 +99,7 @@
 					<div *ngFor="let group of asAsset(selectedElement)?.regionGroups; index as index;">
 						<mat-list-item class="reduce-padding">
 							<button mat-button class="group-name"
-								(click)="editRegionGroup.emit({asset: asAsset(selectedElement), index: index});"
+								(click)="editRegionGroup.emit({regionGroup: {asset: asAsset(selectedElement), index: index}, callback: regionGroupEditedCallback()});"
 								matTooltip="Open in region group editor" matTooltipPosition="above">
 								{{group.name || 'Region Group ' + (index + 1)}}
 							</button>
@@ -115,7 +115,7 @@
 								<mat-icon>more_vert</mat-icon>
 							</button>
 							<mat-menu #regionGroupMenu="matMenu">
-								<button mat-menu-item (click)="group.visible = !group.visible; dirty.emit();">
+								<button mat-menu-item (click)="changeGroupVisibility(index); dirty.emit();">
 									<mat-icon>{{group.visible ? 'visibility' : 'visibility_off'}}</mat-icon>
 									Toggle Visibility
 								</button>

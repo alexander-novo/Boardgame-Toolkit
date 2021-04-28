@@ -1,7 +1,8 @@
 <mat-tab-group #editorTabNav mat-align-tabs="center" class="full-tab-group" (selectedTabChange)="tabChange($event)">
 	<mat-tab label=" Project">
 		<project-editor [project]="project" [projectId]="projectId" (reloadProject)="refreshProject($event)"
-			(dirty)="dirty = true" (editRegionGroup)="editingRegionGroup = $event; editorTabNav.selectedIndex = 1;">
+			(dirty)="dirty = true"
+			(editRegionGroup)="editingRegionGroup = $event.regionGroup; editorTabNav.selectedIndex = 1; finishedEditingRegionGroupCallback = $event.callback;">
 		</project-editor>
 	</mat-tab>
 	<mat-tab *ngIf="editingRegionGroup">

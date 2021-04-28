@@ -6,7 +6,7 @@
 					<mat-panel-title>Regions</mat-panel-title>
 				</mat-expansion-panel-header>
 
-				<mat-selection-list multiple="false" (selectionChange)="selectRegion($event)">
+				<mat-selection-list #regionList multiple="false" (selectionChange)="selectRegion($event)">
 					<div *ngFor="let drawable of drawables">
 						<mat-list-option [value]="drawable" matTooltip="Edit Region" matTooltipPosition="above">
 							{{drawable.region.name || 'New Region'}}
@@ -54,6 +54,77 @@
 					</ngx-mat-color-picker>
 				</mat-form-field>
 			</mat-expansion-panel>
+		</mat-accordion>
+	</mat-sidenav>
+	<mat-sidenav #rightNav mode="over" position=end disableClose>
+		<mat-accordion multi>
+			<mat-expansion-panel expanded *ngIf="!!selectedRegion">
+				<mat-expansion-panel-header>
+					<mat-panel-title style="white-space: nowrap;">
+						Region Info
+					</mat-panel-title>
+					<mat-panel-description class="long-text">
+						{{selectedRegion.region.name || 'New Region'}}
+					</mat-panel-description>
+				</mat-expansion-panel-header>
+				<mat-form-field>
+					<mat-label>Name</mat-label>
+					<input matInput [(ngModel)]="selectedRegion.region.name" (ngModelChange)="dirty.emit();">
+				</mat-form-field>
+				<mat-form-field *ngIf="selectedRegion?.region.shape != 'Polygon'">
+					<mat-label>Angle</mat-label>
+					<input matInput type="number" [(ngModel)]="selectedRegion.img.angle"
+						(ngModelChange)="selectedRegion.region.params.nonpoly.angle = selectedRegion.img.angle; canvas.renderAll(); dirty.emit();">
+				</mat-form-field>
+				<mat-slider min=0 max=360 thumbLabel [(ngModel)]="selectedRegion.img.angle"
+					(ngModelChange)="selectedRegion.region.params.nonpoly.angle = selectedRegion.img.angle; canvas.renderAll(); dirty.emit();"
+					*ngIf="selectedRegion?.region.shape != 'Polygon'">
+				</mat-slider>
+			</mat-expansion-panel>
+			<!-- <mat-expansion-panel expanded *ngIf="!!selectedRegion && selectedRegion.type == eDisplayType.Asset">
+				<mat-expansion-panel-header>
+					<mat-panel-title>
+						Regions
+					</mat-panel-title>
+				</mat-expansion-panel-header>
+				<mat-list>
+					<div *ngFor="let group of asAsset(selectedRegion)?.regionGroups; index as index;">
+						<mat-list-item class="reduce-padding">
+							<button mat-button class="group-name"
+								(click)="editRegionGroup.emit({asset: asAsset(selectedRegion), index: index});"
+								matTooltip="Open in region group editor" matTooltipPosition="above">
+								{{group.name || 'Region Group ' + (index + 1)}}
+							</button>
+							<span style="flex: 1 1 auto;"></span>
+							<button mat-icon-button
+								[style.color]="group.color || environment.editor.regions.defaultRegionGroupColor"
+								[(colorPicker)]="group.color" (colorPickerChange)="changeRegionGroupColor(index)"
+								cpUseRootViewContainer=true matTooltip="Change color of regions in this group"
+								matTooltipPosition="above">
+								<mat-icon>colorize</mat-icon>
+							</button>
+							<button mat-icon-button [matMenuTriggerFor]="regionGroupMenu">
+								<mat-icon>more_vert</mat-icon>
+							</button>
+							<mat-menu #regionGroupMenu="matMenu">
+								<button mat-menu-item (click)="group.visible = !group.visible; dirty.emit();">
+									<mat-icon>{{group.visible ? 'visibility' : 'visibility_off'}}</mat-icon>
+									Toggle Visibility
+								</button>
+								<button mat-menu-item (click)="deleteRegionGroupFromSelected(index)">
+									<mat-icon>delete</mat-icon>
+									Delete
+								</button>
+							</mat-menu>
+						</mat-list-item>
+						<mat-divider></mat-divider>
+					</div>
+				</mat-list>
+				<button class="list-action-button" mat-raised-button color="primary"
+					(click)="newRegionGroup(asAsset(selectedRegion))">
+					New Region Group
+				</button>
+			</mat-expansion-panel> -->
 		</mat-accordion>
 	</mat-sidenav>
 	<mat-sidenav-content id="toolkit-canvas-container">

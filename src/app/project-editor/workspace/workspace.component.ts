@@ -20,6 +20,7 @@ export class WorkspaceComponent implements OnInit {
 	code = "// TODO";
 
 	editingRegionGroup?: { asset: Asset, index: number } = undefined;
+	finishedEditingRegionGroupCallback?: () => void;
 
 	private autosave: number;
 
@@ -82,8 +83,12 @@ export class WorkspaceComponent implements OnInit {
 	}
 
 	tabChange(e: MatTabChangeEvent): void {
-		if (e.index == 0) {
-			this.editingRegionGroup = undefined;
+		if (e.index == 0 && this.editingRegionGroup) {
+			if (this.finishedEditingRegionGroupCallback) {
+				this.finishedEditingRegionGroupCallback();
+			}
+
+			this.editingRegionGroup = this.finishedEditingRegionGroupCallback = null;
 		}
 	}
 }

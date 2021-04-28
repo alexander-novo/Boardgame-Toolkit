@@ -1,7 +1,8 @@
 import { Color, stringInputToObject } from '@angular-material-components/color-picker';
 import { Component, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild } from '@angular/core';
 import { AbstractControl, FormControl } from '@angular/forms';
-import { MatSelectionListChange } from '@angular/material/list';
+import { MatSelectionList, MatSelectionListChange } from '@angular/material/list';
+import { MatSidenav } from '@angular/material/sidenav';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ResizeSensor } from 'css-element-queries';
 import { fabric } from "fabric";
@@ -51,6 +52,10 @@ export class RegionEditorComponent {
 
 	@ViewChild('myCanvas')
 	myCanvas: ElementRef<HTMLCanvasElement>;
+	@ViewChild('rightNav')
+	rightNav: MatSidenav;
+	@ViewChild('regionList')
+	regionList: MatSelectionList;
 
 	asset: Asset;
 	index: number;
@@ -139,7 +144,9 @@ export class RegionEditorComponent {
 		initialVpt[5] = this.canvas.height / 2;
 
 		this.canvas.on('selection:cleared', opt => {
-			this.selectRegion = null;
+			this.selectedRegion = null;
+			this.rightNav.close();
+			this.regionList.selectedOptions.clear();
 		});
 
 		// Zoom using mouse wheel
@@ -274,6 +281,9 @@ export class RegionEditorComponent {
 
 		shape.on('selected', e => {
 			this.selectedRegion = drawable;
+			this.regionList.selectedOptions.clear();
+			this.regionList.selectedOptions.select(this.regionList.options.find(option => option.value == this.selectedRegion));
+			this.rightNav.open();
 		});
 
 		// Modified when changes are finished i.e. user unclicks.
@@ -337,6 +347,7 @@ export class RegionEditorComponent {
 			// 🤮
 			// Need to deep copy, otherwise changing the params of the new region will change the params of the old one.
 			let newRegion: Region = JSON.parse(JSON.stringify(this.copiedRegion.region));
+			newRegion.name = (newRegion.name ?? 'New Region') + ' (Copy)';
 			this.group.regions.push(newRegion);
 			this.addRegionToCanvas(newRegion);
 			this.canvas.requestRenderAll();
