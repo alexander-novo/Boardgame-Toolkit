@@ -1,6 +1,6 @@
-import { Component, Input, OnInit, Output, ViewChild, ViewContainerRef } from '@angular/core';
+import { Component, Input, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { Asset, AssetCollection, Project, ProjectService, Region, RegionGroup } from 'src/app/services/project.service';
+import { Asset, AssetCollection, Project, ProjectService, RegionGroup } from 'src/app/services/project.service';
 import { NestedTreeControl } from '@angular/cdk/tree';
 import { MatTreeNestedDataSource } from '@angular/material/tree';
 import { ElementRef } from '@angular/core';
@@ -22,7 +22,8 @@ interface Drawable {
 	type: DisplayType;
 	id: string;
 	ref: Asset | AssetCollection;
-	image: fabric.Image;
+	image: fabric.Group;
+	regionGroups: fabric.Object[][];
 }
 
 @Component({
@@ -129,6 +130,10 @@ export class EditorComponent {
 		)
 	}
 
+	onProjectChangedFromDifferentEditor(): void {
+		this.addProjectToCanvas();
+	}
+
 	ngAfterViewInit(): void {
 		// Make canvas pixel size the same as it actually is on the DOM (css set to 100%)
 		let canvas = this.myCanvas.nativeElement;
@@ -151,6 +156,11 @@ export class EditorComponent {
 
 		this.canvas.on('selection:cleared', opt => {
 			if (!this.selectedNonDrawable) {
+				// Make all regions on the selected element invisible
+				this.selectedElement.regionGroups.forEach(regionGroup => regionGroup.forEach(regionImg => regionImg.visible = false));
+				this.selectedElement.image.dirty = this.selectedElement.regionGroups.some(regionGroup => regionGroup.length > 0);
+
+				// Then deselect the element
 				this.selectedElement = null;
 				this.rightNav.close();
 			}
@@ -279,9 +289,10 @@ export class EditorComponent {
 					ref: asset,
 					type: DisplayType.Asset,
 					id: asset._id,
+					regionGroups: [],
 				};
 
-				this.loadDrawableImage(re, asset.url);
+				this.loadDrawableImage(re, asset.url, asset.regionGroups);
 
 				return re;
 			}).concat(this.project.assetCollections
@@ -292,9 +303,10 @@ export class EditorComponent {
 						ref: collection,
 						type: DisplayType.Collection,
 						id: collection._id,
+						regionGroups: [],
 					};
 
-					this.loadDrawableImage(re, collection.url || this.project.assets[collection.assets[0]].url);
+					this.loadDrawableImage(re, collection.url || this.project.assets[collection.assets[0]].url, []);
 
 					return re;
 				})).map(drawable => [
@@ -411,7 +423,7 @@ export class EditorComponent {
 		});
 	}
 
-	loadDrawableImage(drawable: Drawable, url: string): void {
+	loadDrawableImage(drawable: Drawable, url: string, regions: RegionGroup[]): void {
 		drawable.ref.position ??= {
 			x: 0,
 			y: 0
@@ -423,24 +435,77 @@ export class EditorComponent {
 		drawable.ref.angle ??= 0;
 
 		fabric.Image.fromURL(url, img => {
-			drawable.image = img;
+			let regionImgs = regions.map(regionGroup =>
+				regionGroup.regions.map(
+					region => {
+						let shape: fabric.Rect | fabric.Circle;
+						const globalOptions: fabric.IRectOptions = {
+							fill: (regionGroup.color ?? environment.editor.regions.defaultRegionGroupColor) + environment.editor.regions.regionFillTransparency,
+							stroke: (regionGroup.color ?? environment.editor.regions.defaultRegionGroupColor),
+							strokeWidth: 10,
+							strokeDashArray: [20, 20],
+							originX: 'center',
+							originY: 'center',
+							visible: false,
+						};
+
+						if (region.shape == 'Square') {
+							shape = new fabric.Rect({
+								width: .1 * img.width,
+								height: .1 * img.height,
+								...region.params.nonpoly,
+								...globalOptions,
+							});
+						} else if (region.shape == 'Circle') {
+							shape = new fabric.Circle({
+								radius: .05 * (img.width + img.height),
+								...region.params.nonpoly,
+								...globalOptions,
+							});
+						}
+						return shape;
+					}
+				)
+			);
+
+			let group = new fabric.Group([img, ...regionImgs.flat()], {
+				left: drawable.ref.position.x,
+				top: drawable.ref.position.y,
+				scaleX: drawable.ref.scale.x,
+				scaleY: drawable.ref.scale.y,
+				angle: drawable.ref.angle,
+			});
+
+			drawable.image = group;
+			drawable.regionGroups = regionImgs;
 
 			this.addDrawableEvents(drawable);
-			this.canvas.add(img);
-			console.log("Adding ", drawable);
+			this.canvas.add(group);
 			this.canvas.requestRenderAll();
 		}, {
-			left: drawable.ref.position.x,
-			top: drawable.ref.position.y,
-			scaleX: drawable.ref.scale.x,
-			scaleY: drawable.ref.scale.y,
-			angle: drawable.ref.angle,
+			originX: 'center',
+			originY: 'center',
 		});
 	}
 
 	addDrawableEvents(drawable: Drawable): void {
 		drawable.image.on('selected', e => {
 			this.selectedElement = drawable;
+
+			if (drawable.type == DisplayType.Asset) {
+				drawable.regionGroups.forEach(
+					(regionGroup, groupIndex) => regionGroup.forEach(
+						region => {
+							region.visible = (drawable.ref as Asset).regionGroups[groupIndex].visible;
+							console.log("Setting region to ", region.visible);
+						}));
+
+				// Need to set dirty flag, otherwise Fabric will assume that each invisible
+				// group member is still invisible
+				drawable.image.dirty = true;
+
+				this.canvas.requestRenderAll();
+			}
 
 			this.rightNav.open();
 		});
@@ -493,5 +558,27 @@ export class EditorComponent {
 		} else {
 			throw new Error('Drawable not actually an asset!');
 		}
+	}
+
+	deleteRegionGroupFromSelected(regionGroupIndex: number): void {
+		this.selectedElement.regionGroups[regionGroupIndex].forEach(
+			regionImg => this.selectedElement.image.removeWithUpdate(regionImg)
+		);
+		(this.selectedElement.ref as Asset).regionGroups.splice(regionGroupIndex, 1);
+		this.selectedElement.regionGroups.splice(regionGroupIndex, 1);
+		this.canvas.requestRenderAll();
+	}
+
+	changeRegionGroupColor(regionGroupIndex: number): void {
+		let regionGroup = (this.selectedElement.ref as Asset).regionGroups[regionGroupIndex];
+		this.selectedElement.regionGroups[regionGroupIndex].forEach(
+			regionImg => {
+				regionImg.fill = (regionGroup.color ?? environment.editor.regions.defaultRegionGroupColor) + environment.editor.regions.regionFillTransparency;
+				regionImg.stroke = (regionGroup.color ?? environment.editor.regions.defaultRegionGroupColor);
+			}
+		)
+		// Must be marked dirty so that group sub-objects get updated
+		this.selectedElement.image.dirty = true;
+		this.canvas.requestRenderAll();
 	}
 }

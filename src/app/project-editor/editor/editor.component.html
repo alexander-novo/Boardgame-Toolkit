@@ -106,7 +106,7 @@
 							<span style="flex: 1 1 auto;"></span>
 							<button mat-icon-button
 								[style.color]="group.color || environment.editor.regions.defaultRegionGroupColor"
-								[(colorPicker)]="group.color" (colorPickerChange)="dirty.emit()"
+								[(colorPicker)]="group.color" (colorPickerChange)="changeRegionGroupColor(index)"
 								cpUseRootViewContainer=true matTooltip="Change color of regions in this group"
 								matTooltipPosition="above">
 								<mat-icon>colorize</mat-icon>
@@ -119,7 +119,7 @@
 									<mat-icon>{{group.visible ? 'visibility' : 'visibility_off'}}</mat-icon>
 									Toggle Visibility
 								</button>
-								<button mat-menu-item (click)="asAsset(selectedElement).regionGroups.splice(index, 1)">
+								<button mat-menu-item (click)="deleteRegionGroupFromSelected(index)">
 									<mat-icon>delete</mat-icon>
 									Delete
 								</button>
