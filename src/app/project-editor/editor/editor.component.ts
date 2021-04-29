@@ -78,6 +78,9 @@ export class EditorComponent implements OnInit {
 	currentDragAsset: Drawable;
 	selectedNonDrawable = false;
 	isDraggingCanvas = false;
+	separatorKeysCodes: number[] = [ENTER, COMMA];
+	tagCtrl = new FormControl();
+	filteredTags: Observable<Tag[]>;
 
 	@ViewChild('rightNav')
 	rightNav: MatSidenav;
@@ -94,6 +97,9 @@ export class EditorComponent implements OnInit {
 		private cdRef: ChangeDetectorRef
 	) {
 		this.dataSource.data = [];
+		this.filteredTags = this.tagCtrl.valueChanges.pipe(
+		startWith(null as string),
+		map((tag: string | null) => tag ? this._filter(tag) : this.assetTags.slice())); 
 	}
 
 	ngOnInit(): void {
@@ -566,23 +572,14 @@ export class EditorComponent implements OnInit {
 		}
 
 	}
-	separatorKeysCodes: number[] = [ENTER, COMMA];
-	tagCtrl = new FormControl();
-	filteredTags: Observable<Tag[]>;
+
 	@ViewChild('tagInput') tagInput: ElementRef<HTMLInputElement>;
 	@ViewChild('auto') matAutocomplete: MatAutocomplete;
+ 
 
-	ChipsAutocompleteExample(){
-		
-		this.filteredTags = this.tagCtrl.valueChanges.pipe(
-		startWith(null as string),
-		map((tag: Tag | null) => tag ? this._filter(tag) : this.assetTags.slice()));  
-
-	}
-	private _filter(value: Tag): Tag[] {
-		const filterValue = value
-	
-		return this.project.projectTags.filter(tag => this.project.projectTags.indexOf(filterValue));
+	private _filter(value: String): Tag[] {
+	const filterValue = value.toLowerCase()
+	return this.project.projectTags.filter(tag => tag.name.toLowerCase().indexOf(filterValue) === 0);
 	}
 	add(event: MatChipInputEvent): void {
 		const input = event.input;
@@ -590,6 +587,7 @@ export class EditorComponent implements OnInit {
 	
 		if(this.project.projectTags.find(tag => tag.name == value)){
 			this.assetTags.push(this.project.projectTags.find(tag => tag.name == value));
+			this.selectedElement.ref.tags.push(this.project.projectTags.findIndex(tag => tag.name == value));
 		}
 		// Reset the input value
 		if (input) {
@@ -608,6 +606,7 @@ export class EditorComponent implements OnInit {
 	
 	selected(event: MatAutocompleteSelectedEvent): void {
 	this.assetTags.push(this.project.projectTags.find(tag => tag.name == event.option.viewValue));
+	this.selectedElement.ref.tags.push(this.project.projectTags.findIndex(tag => tag.name == event.option.viewValue));
 	this.tagInput.nativeElement.value = '';
 	this.tagCtrl.setValue(null);
 	}

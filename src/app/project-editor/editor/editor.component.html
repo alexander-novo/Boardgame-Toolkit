@@ -129,10 +129,10 @@
 							[matChipInputSeparatorKeyCodes]="separatorKeysCodes"
 							(matChipInputTokenEnd)="add($event)">
 						<mat-chip cdkDrag
-							[removable]="removable"
+							[removable]
 							(removed)="remove(tag)"
 							*ngFor= "let tag of assetTags">{{tag.name}}
-							<mat-icon matChipRemove *ngIf="removable">cancel</mat-icon>
+							<mat-icon matChipRemove>cancel</mat-icon>
 						</mat-chip>
 						
 					</mat-chip-list>
