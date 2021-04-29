@@ -99,6 +99,7 @@ export class Project {
 	assets: Asset[];
 	projectTags: Tag[];
 	assetCollections: AssetCollection[];
+	published: boolean;
 	camera: {
 		x: number;
 		y: number;
