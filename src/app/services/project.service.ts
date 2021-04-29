@@ -3,6 +3,31 @@ import { Injectable } from '@angular/core';
 import { FileInput } from 'ngx-material-file-input';
 import { RegisterService } from './register.service';
 
+export interface Region {
+	name?: string;
+	shape: 'Square' | 'Circle' | 'Polygon';
+	params: {
+		nonpoly?: {
+			top: number;
+			left: number;
+			scaleX: number;
+			scaleY: number;
+			angle: number;
+		};
+		points: {
+			x: number;
+			y: number;
+		}[];
+	};
+}
+
+export interface RegionGroup {
+	name?: string;
+	color?: string;
+	visible: boolean;
+	regions: Region[];
+}
+
 export interface Asset {
 	_id: string;
 	name: string;
@@ -20,9 +45,10 @@ export interface Asset {
 	assetCollection?: number;
 	hiddenFromPlayers: boolean;
 	tags: number[];
+	regionGroups: RegionGroup[];
 }
 
-export interface Tag{
+export interface Tag {
 	_id: string;
 	name: string;
 	selected: true;
@@ -91,6 +117,8 @@ export class ProjectService {
 
 	saveProject(id: string, project: Project) {
 		const params = new HttpParams().set("id", id);
+
+		project.date.modified = new Date();
 
 		return this.http.put<void>('/api/projects/project', project, { params });
 	}

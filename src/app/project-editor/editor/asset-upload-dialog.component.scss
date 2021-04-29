@@ -1,0 +1,21 @@
+ngx-dropzone {
+	overflow-y: hidden;
+	scrollbar-width: thin;
+	padding-bottom: 10px;
+
+	ngx-dropzone-image-preview {
+		margin-bottom: 30px;
+		
+		ngx-dropzone-label {
+			text-overflow: ellipsis;
+			overflow-x: hidden;
+			width:100%;
+			top: 140px;
+			white-space: nowrap;
+		}
+	}
+}
+
+mat-expansion-panel {
+	margin: 10px 0;
+}

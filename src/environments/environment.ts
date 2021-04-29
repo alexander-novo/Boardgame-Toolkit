@@ -14,10 +14,14 @@ export const environment = {
 			minZoom: .04,
 			maxZoom: 20,
 			grid: 200,
-			zoomSpeed: .0025,
+			zoomSpeed: .002,
+		},
+		regions: {
+			defaultRegionGroupColor: '#32cd32',
+			regionFillTransparency: '55',
 		}
 	},
-
+	maxAssetSize: 4000000,
 };
 
 /*

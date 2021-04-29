@@ -1,0 +1,29 @@
+mat-sidenav-container {
+	height:100%;
+}
+
+mat-sidenav {
+	width: 300px;
+}
+
+#toolkit-canvas-container {
+	position: relative;
+	overflow: hidden;
+}
+
+#toolkit-canvas {
+	height: 100% !important;
+	width: 100% !important;
+}
+
+.long-text {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	display: block;
+}
+
+.list-action-button {
+	margin-top: 10px;
+	width: 100%;
+}
