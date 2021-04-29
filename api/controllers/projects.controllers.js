@@ -225,6 +225,8 @@ module.exports.getProject = async (req, res) => {
 }
 
 module.exports.saveProject = async (req, res) => {
+	// For now, don't mess around with versions - they're useful, but causing issues right now
+	delete req.body.__v;
 	let project;
 	try {
 		project = await Project.findById(req.query.id);

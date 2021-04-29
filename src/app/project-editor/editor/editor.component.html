@@ -1,6 +1,6 @@
-<mat-sidenav-container style="height:calc(100% - 64px)" (appDropZone)="onFileDrop($event)" autosize hasBackdrop="false">
+<mat-sidenav-container (appDropZone)="onFileDrop($event)" autosize hasBackdrop="false">
 	<mat-sidenav mode="side" opened disableClose>
-		<mat-accordion>
+		<mat-accordion multi>
 			<mat-expansion-panel expanded id="assets-panel">
 				<mat-expansion-panel-header>
 					<mat-panel-title>Assets</mat-panel-title>
@@ -44,12 +44,31 @@
 						</mat-nested-tree-node>
 					</mat-button-toggle-group>
 				</mat-tree>
-				<button class="asset-button" mat-raised-button color="primary" (click)="uploadAssetsPopup()">
+				<button class="list-action-button" mat-raised-button color="primary" (click)="uploadAssetsPopup()">
 					Upload Assets
 				</button>
-				<button class="asset-button" mat-raised-button color="primary" (click)="newCollection([])">
+				<button class="list-action-button" mat-raised-button color="primary" (click)="newCollection([])">
 					New Collection
 				</button>
+			</mat-expansion-panel>
+		</mat-accordion>
+		<mat-accordion>
+			<mat-expansion-panel *ngIf="!!project">
+				<mat-expansion-panel-header>
+					<mat-panel-title>Tags</mat-panel-title>
+				</mat-expansion-panel-header>
+
+				<mat-chip-list [multiple]="false" cdkDropList id="leftList" [cdkDropListData]="project.projectTags"
+					(cdkDropListDropped)="tagDrop($event)" [cdkDropListConnectedTo]="['rightList']">
+					<mat-chip [style.background-color]="tag.color" cdkDrag *ngFor="let tag of project.projectTags">
+						{{tag.name}}
+					</mat-chip>
+				</mat-chip-list>
+
+				<button class="tag-button" mat-raised-button color="primary" (click)="newTag()" id="new-tag">
+					New Tag
+				</button>
+
 			</mat-expansion-panel>
 		</mat-accordion>
 	</mat-sidenav>
@@ -57,36 +76,102 @@
 		<mat-accordion multi>
 			<mat-expansion-panel expanded *ngIf="!!selectedElement">
 				<mat-expansion-panel-header>
-					<mat-panel-title>
+					<mat-panel-title style="white-space: nowrap;">
 						{{selectedElement.type}} Info
 					</mat-panel-title>
-					<mat-panel-description>
+					<mat-panel-description class="long-text">
 						{{selectedElement.ref.name}}
 					</mat-panel-description>
 				</mat-expansion-panel-header>
 				<mat-form-field>
 					<mat-label>Name</mat-label>
-					<input matInput [(ngModel)]="selectedElement.ref.name" (ngModelChange)="dirty = true;">
+					<input matInput [(ngModel)]="selectedElement.ref.name" (ngModelChange)="dirty.emit();">
 				</mat-form-field>
 				<mat-form-field>
 					<mat-label>Angle</mat-label>
 					<input matInput type="number" [(ngModel)]="selectedElement.image.angle"
-						(ngModelChange)="selectedElement.ref.angle = selectedElement.image.angle; canvas.renderAll(); dirty = true;">
+						(ngModelChange)="selectedElement.ref.angle = selectedElement.image.angle; canvas.renderAll(); dirty.emit();">
 				</mat-form-field>
 				<mat-slider min=0 max=360 thumbLabel [(ngModel)]="selectedElement.image.angle"
-					(ngModelChange)="selectedElement.ref.angle = selectedElement.image.angle; canvas.renderAll(); dirty = true;">
+					(ngModelChange)="selectedElement.ref.angle = selectedElement.image.angle; canvas.renderAll(); dirty.emit();">
 				</mat-slider>
 				<mat-form-field>
 					<mat-label>Scale</mat-label>
 					<input matInput type="number" [(ngModel)]="selectedElement.image.scaleX" step=.01
-						(ngModelChange)="selectedElement.ref.scale.x = selectedElement.ref.scale.y = selectedElement.image.scaleY = selectedElement.image.scaleX; canvas.renderAll(); dirty = true;">
+						(ngModelChange)="selectedElement.ref.scale.x = selectedElement.ref.scale.y = selectedElement.image.scaleY = selectedElement.image.scaleX; canvas.renderAll(); dirty.emit();">
 				</mat-form-field>
 				<mat-slider min=0 max=2 step=.01 thumbLabel [(ngModel)]="selectedElement.image.scaleX"
-					(ngModelChange)="selectedElement.ref.scale.x = selectedElement.ref.scale.y = selectedElement.image.scaleY = selectedElement.image.scaleX; canvas.renderAll(); dirty = true;">
+					(ngModelChange)="selectedElement.ref.scale.x = selectedElement.ref.scale.y = selectedElement.image.scaleY = selectedElement.image.scaleX; canvas.renderAll(); dirty.emit();">
 				</mat-slider>
-				<mat-checkbox [(ngModel)]="selectedElement.ref.hiddenFromPlayers" (ngModelChange)="dirty = true">
+				<mat-slide-toggle [(ngModel)]="selectedElement.ref.hiddenFromPlayers" (ngModelChange)="dirty.emit();"
+					[matTooltip]="'When enabled, players can\'t see this ' + selectedElement.type.toLowerCase()">
 					Hide from players
-				</mat-checkbox>
+				</mat-slide-toggle>
+			</mat-expansion-panel>
+			<mat-expansion-panel expanded *ngIf="!!selectedElement">
+				<mat-expansion-panel-header>
+					<mat-panel-title>Tags</mat-panel-title>
+				</mat-expansion-panel-header>
+				<mat-form-field>
+					<mat-chip-list #chipList cdkDropList id="rightList" [cdkDropListConnectedTo]="['leftList']"
+						(cdkDropListDropped)="tagDrop($event)" [cdkDropListData]="assetTags">
+						<input placeholder="Tag Search" #tagInput [formControl]="tagCtrl" [matAutocomplete]="auto"
+							[matChipInputFor]="chipList" [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+							(matChipInputTokenEnd)="add($event)">
+						<mat-chip [style.background-color]="tag.color" cdkDrag [removable] (removed)="remove(tag)" *ngFor="let tag of assetTags">{{tag.name}}
+							<mat-icon matChipRemove>cancel</mat-icon>
+						</mat-chip>
+					</mat-chip-list>
+					<mat-autocomplete #auto="matAutocomplete" (optionSelected)="selected($event)">
+						<mat-option *ngFor="let tag of filteredTags | async" [value]="tag">
+							{{tag.name}}
+						</mat-option>
+					</mat-autocomplete>
+				</mat-form-field>
+			</mat-expansion-panel>
+			<mat-expansion-panel expanded *ngIf="!!selectedElement && selectedElement.type == eDisplayType.Asset">
+				<mat-expansion-panel-header>
+					<mat-panel-title>
+						Regions
+					</mat-panel-title>
+				</mat-expansion-panel-header>
+				<mat-list>
+					<div *ngFor="let group of asAsset(selectedElement)?.regionGroups; index as index;">
+						<mat-list-item class="reduce-padding">
+							<button mat-button class="group-name"
+								(click)="editRegionGroup.emit({regionGroup: {asset: asAsset(selectedElement), index: index}, callback: regionGroupEditedCallback()});"
+								matTooltip="Open in region group editor" matTooltipPosition="above">
+								{{group.name || 'Region Group ' + (index + 1)}}
+							</button>
+							<span style="flex: 1 1 auto;"></span>
+							<button mat-icon-button
+								[style.color]="group.color || environment.editor.regions.defaultRegionGroupColor"
+								[(colorPicker)]="group.color" (colorPickerChange)="changeRegionGroupColor(index)"
+								cpUseRootViewContainer=true matTooltip="Change color of regions in this group"
+								matTooltipPosition="above">
+								<mat-icon>colorize</mat-icon>
+							</button>
+							<button mat-icon-button [matMenuTriggerFor]="regionGroupMenu">
+								<mat-icon>more_vert</mat-icon>
+							</button>
+							<mat-menu #regionGroupMenu="matMenu">
+								<button mat-menu-item (click)="changeGroupVisibility(index); dirty.emit();">
+									<mat-icon>{{group.visible ? 'visibility' : 'visibility_off'}}</mat-icon>
+									Toggle Visibility
+								</button>
+								<button mat-menu-item (click)="deleteRegionGroupFromSelected(index)">
+									<mat-icon>delete</mat-icon>
+									Delete
+								</button>
+							</mat-menu>
+						</mat-list-item>
+						<mat-divider></mat-divider>
+					</div>
+				</mat-list>
+				<button class="list-action-button" mat-raised-button color="primary"
+					(click)="newRegionGroup(asAsset(selectedElement))">
+					New Region Group
+				</button>
 			</mat-expansion-panel>
 		</mat-accordion>
 	</mat-sidenav>

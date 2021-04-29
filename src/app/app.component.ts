@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewContainerRef } from '@angular/core';
 import { RegisterService } from './services/register.service';
 
 @Component({
@@ -9,7 +9,7 @@ import { RegisterService } from './services/register.service';
 export class AppComponent implements OnInit {
 	title = 'Boardgame Toolkit';
 
-	constructor(private registerService: RegisterService) { }
+	constructor(private registerService: RegisterService, public vcRef: ViewContainerRef) { }
 
 	ngOnInit(): void { }
 

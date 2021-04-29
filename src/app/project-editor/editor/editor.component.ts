@@ -1,41 +1,83 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
+import { ChangeDetectorRef, Component, Input, Output, ViewChild, Inject } from '@angular/core';
+import { COMMA, ENTER } from '@angular/cdk/keycodes';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA, MAT_DIALOG_SCROLL_STRATEGY_FACTORY } from '@angular/material/dialog';
+import { MatSelectionList } from '@angular/material/list';
 import { ActivatedRoute } from '@angular/router';
-import { Asset, AssetCollection, Project, ProjectService } from 'src/app/services/project.service';
 import { NestedTreeControl } from '@angular/cdk/tree';
 import { MatTreeNestedDataSource } from '@angular/material/tree';
 import { ElementRef } from '@angular/core';
 import { fabric } from "fabric";
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSidenav } from '@angular/material/sidenav';
+import { AbstractControl, FormGroup, FormControl, Validators, ValidatorFn } from '@angular/forms';
+import { FileValidator } from 'ngx-material-file-input';
+import { ThemePalette } from '@angular/material/core';
+import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
+import { MatAutocompleteSelectedEvent, MatAutocomplete } from '@angular/material/autocomplete';
+import { MatChipInputEvent } from '@angular/material/chips';
+import { Observable } from 'rxjs';
+import { map, startWith } from 'rxjs/operators';
+
+import { Asset, AssetCollection, Project, ProjectService, Tag, RegionGroup } from 'src/app/services/project.service';
 import { environment } from 'src/environments/environment';
 import { CollectionDialogComponent } from './collection-dialog.component';
 import { AssetUploadDialogComponent } from './asset-upload-dialog.component';
-import { forkJoin, Subject, Subscription } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { forkJoin } from 'rxjs';
+import { EventEmitter } from '@angular/core';
 
 
 enum DisplayType {
 	Asset = "Asset", Collection = "Collection"
 }
 
+export class TagDialogData {
+	tags: Tag[];
+}
+
 interface Drawable {
 	type: DisplayType;
 	id: string;
 	ref: Asset | AssetCollection;
-	image: fabric.Image;
+	image: fabric.Group;
+	regionGroups: fabric.Object[][];
 }
 
 @Component({
-	selector: 'app-editor',
+	selector: 'project-editor',
 	templateUrl: './editor.component.html',
-	styleUrls: ['./editor.component.scss']
+	styleUrls: ['./editor.component.scss'],
 })
-export class EditorComponent implements OnInit {
+export class EditorComponent {
 	eDisplayType = DisplayType;
+	environment = environment;
+
+	private _project: Project;
+	@Input()
+	get project(): Project { return this._project; }
+	set project(proj: Project) {
+		this._project = proj;
+		this.addProjectToCanvas();
+	}
+
+	@Input()
 	projectId: string;
-	project: Project;
-	Drawables = new Map<{ type: DisplayType, id: string }, Drawable>();
+
+	@Output()
+	reloadProject = new EventEmitter<(param: { project: Project, oldProject: Project, newAssets: { asset: Asset, index: number }[] }) => void>();
+
+	@Output()
+	dirty = new EventEmitter<void>();
+
+	@Output()
+	editRegionGroup = new EventEmitter<{ regionGroup: { asset: Asset, index: number }, callback: (() => void) }>();
+
+	@ViewChild('myCanvas')
+	myCanvas: ElementRef<HTMLCanvasElement>;
+
+	@ViewChild('rightNav')
+	rightNav: MatSidenav;
+
+	drawables = new Map<{ type: DisplayType, id: string }, Drawable>();
 	treeControl = new NestedTreeControl<Drawable | { type: DisplayType, ref: Asset }>(
 		node => {
 			return node.type == DisplayType.Collection ?
@@ -45,39 +87,28 @@ export class EditorComponent implements OnInit {
 	);
 	dataSource = new MatTreeNestedDataSource<Drawable | Asset>();
 	selectedElement: Drawable;
-	@ViewChild('myCanvas')
-	myCanvas: ElementRef<HTMLCanvasElement>;
-	// context: CanvasRenderingContext2D;
+	assetTags: Tag[];
 	canvas: fabric.Canvas;
-	dirty = false;
-	shouldsave = true;
-	turnNewAssetsIntoCollection = false;
-	currentDragAsset: Drawable;
 	selectedNonDrawable = false;
 	isDraggingCanvas = false;
-
-	@ViewChild('rightNav')
-	rightNav: MatSidenav;
+	separatorKeysCodes: number[] = [ENTER, COMMA];
+	tagCtrl = new FormControl();
+	filteredTags: Observable<Tag[]>;
 
 	hasChild = (_: number, node: Drawable | { type: DisplayType, ref: Asset }) =>
 		node.type == DisplayType.Collection &&
 		(node.ref as AssetCollection).assets.length > 0;
 
 	constructor(
-		private route: ActivatedRoute,
 		private projectService: ProjectService,
 		private dialog: MatDialog,
-		private snackBar: MatSnackBar
+		private snackBar: MatSnackBar,
+		private cdRef: ChangeDetectorRef
 	) {
 		this.dataSource.data = [];
-	}
-
-	ngOnInit(): void {
-		this.route.params.subscribe(params => {
-			this.projectId = window.decodeURIComponent(params['id']);
-
-			this.refreshProject();
-		});
+		this.filteredTags = this.tagCtrl.valueChanges.pipe(
+			startWith(null as Tag),
+			map((tag: Tag | null) => tag ? this._filter(tag) : this.assetTags.slice()));
 	}
 
 	onFileDrop(event: Array<File>) {
@@ -97,9 +128,10 @@ export class EditorComponent implements OnInit {
 							return this.projectService.uploadAsset(url, files[index]);
 						}, this)).subscribe(
 							() => {
-								this.refreshProject().subscribe(
-									({ newAssets }) => {
-										console.log("Exciting!", { newAssets, createNewCollection, collectionIndex });
+								this.reloadProject.emit(
+									({ project, newAssets }) => {
+										this._project = project;
+
 										if (createNewCollection) {
 											this.newCollection(newAssets.map(({ asset, index }) => index))
 										} else if (collectionIndex !== undefined) {
@@ -110,7 +142,7 @@ export class EditorComponent implements OnInit {
 											});
 										}
 									}
-								);
+								)
 							},
 							err => console.log(err)
 						);
@@ -122,41 +154,11 @@ export class EditorComponent implements OnInit {
 		)
 	}
 
-
-	refreshProject() {
-		let obs = this.projectService.getProject(this.projectId).pipe(
-			map(project => {
-				let oldProject = this.project;
-				this.project = project;
-
-				console.log(this.project);
-
-				let newAssets = oldProject === undefined ?
-					undefined :
-					project.assets
-						.map((asset, index) => ({ asset, index }))
-						.filter(({ asset, index }) => !oldProject.assets.some(oldAsset => oldAsset._id == asset._id));
-
-				console.log("newAssets: ", newAssets);
-
-				return { oldProject, newAssets };
-			}, this),
-		);
-
-		let subj = new Subject<{ oldProject: Project, newAssets: { asset: Asset, index: number }[] }>();
-		obs.subscribe(subj);
-
-		subj.subscribe(
-			() => { },
-			err => {
-				console.error(err);
-			},
-			() => {
-				this.addProjectToCanvas();
-			}
-		);
-
-		return subj;
+	onProjectChangedFromDifferentEditor(): void {
+		this.addProjectToCanvas();
+	}
+	ngAfterViewChecked() {
+		this.cdRef.detectChanges();
 	}
 
 	ngAfterViewInit(): void {
@@ -171,6 +173,7 @@ export class EditorComponent implements OnInit {
 		fabric.Object.prototype.borderDashArray = [5, 5];
 		this.canvas = new fabric.Canvas(canvas, {
 			fireRightClick: true,
+			renderOnAddRemove: false,
 		});
 
 		// Disable context menu
@@ -180,6 +183,11 @@ export class EditorComponent implements OnInit {
 
 		this.canvas.on('selection:cleared', opt => {
 			if (!this.selectedNonDrawable) {
+				// Make all regions on the selected element invisible
+				this.selectedElement.regionGroups.forEach(regionGroup => regionGroup.forEach(regionImg => regionImg.visible = false));
+				this.selectedElement.image.dirty = this.selectedElement.regionGroups.some(regionGroup => regionGroup.length > 0);
+
+				// Then deselect the element
 				this.selectedElement = null;
 				this.rightNav.close();
 			}
@@ -206,7 +214,7 @@ export class EditorComponent implements OnInit {
 				if (vpt[4] >= totalWidth * zoom / 2) {
 					vpt[4] = totalWidth * zoom / 2;
 				} else if (vpt[4] < this.canvas.getWidth() - totalWidth * zoom / 2) {
-					vpt[4] = this.canvas.getWidth() - totalHeight * zoom / 2;
+					vpt[4] = this.canvas.getWidth() - totalWidth * zoom / 2;
 				}
 				if (vpt[5] >= totalHeight * zoom / 2) {
 					vpt[5] = totalHeight * zoom / 2;
@@ -218,7 +226,10 @@ export class EditorComponent implements OnInit {
 			this.project.camera.zoom = zoom;
 			this.project.camera.x = vpt[4];
 			this.project.camera.y = vpt[5];
-			this.dirty = true;
+
+			// Let the workspace know the project is dirty
+			this.dirty.emit();
+			this.canvas.requestRenderAll();
 		});
 
 		this.canvas.on('mouse:down', opt => {
@@ -251,7 +262,7 @@ export class EditorComponent implements OnInit {
 					if (vpt[4] >= totalWidth * zoom / 2) {
 						vpt[4] = totalWidth * zoom / 2;
 					} else if (vpt[4] < this.canvas.getWidth() - totalWidth * zoom / 2) {
-						vpt[4] = this.canvas.getWidth() - totalHeight * zoom / 2;
+						vpt[4] = this.canvas.getWidth() - totalWidth * zoom / 2;
 					}
 					if (vpt[5] >= totalHeight * zoom / 2) {
 						vpt[5] = totalHeight * zoom / 2;
@@ -262,38 +273,24 @@ export class EditorComponent implements OnInit {
 
 				this.project.camera.x = vpt[4];
 				this.project.camera.y = vpt[5];
-				this.dirty = true;
+
+				this.dirty.emit();
 
 				this.canvas.setCursor('grabbing');
-
-				this.canvas.setViewportTransform(this.canvas.viewportTransform);
 				this.canvas.requestRenderAll();
 			}
 		});
 
 		this.canvas.on('mouse:up', opt => {
-			this.canvas.setViewportTransform(this.canvas.viewportTransform);
 			this.isDraggingCanvas = false;
 			this.canvas.selection = true;
 
 			this.canvas.setCursor('default');
 
 			opt.e.preventDefault();
-		})
+		});
 
 		this.addProjectToCanvas();
-
-		// Auto save every 5 seconds if the project is dirty
-		setInterval(() => {
-			if (this.dirty && this.shouldsave) {
-				console.log(this.project);
-				this.projectService.saveProject(this.projectId, this.project).subscribe(
-					() => { this.snackBar.open("Project Saved", undefined, { duration: environment.editor.autoSaveBarDuration }); }
-				);
-				this.project.__v++;
-				this.dirty = false;
-			}
-		}, environment.editor.autoSaveInterval)
 	}
 
 	addProjectToCanvas(): void {
@@ -311,7 +308,7 @@ export class EditorComponent implements OnInit {
 
 		this.drawGridAndBounds();
 
-		this.Drawables = new Map(this.project.assets
+		this.drawables = new Map(this.project.assets
 			.filter(asset => asset.assetCollection === undefined)
 			.map((asset): Drawable => {
 				let re: Drawable = {
@@ -319,9 +316,10 @@ export class EditorComponent implements OnInit {
 					ref: asset,
 					type: DisplayType.Asset,
 					id: asset._id,
+					regionGroups: [],
 				};
 
-				this.loadDrawableImage(re, asset.url);
+				this.loadDrawableImage(re, asset.url, asset.regionGroups);
 
 				return re;
 			}).concat(this.project.assetCollections
@@ -332,9 +330,10 @@ export class EditorComponent implements OnInit {
 						ref: collection,
 						type: DisplayType.Collection,
 						id: collection._id,
+						regionGroups: [],
 					};
 
-					this.loadDrawableImage(re, collection.url || this.project.assets[collection.assets[0]].url);
+					this.loadDrawableImage(re, collection.url || this.project.assets[collection.assets[0]].url, []);
 
 					return re;
 				})).map(drawable => [
@@ -345,7 +344,7 @@ export class EditorComponent implements OnInit {
 					drawable,
 				]));
 
-		this.dataSource.data = Array.from(this.Drawables.values());
+		this.dataSource.data = Array.from(this.drawables.values());
 		this.canvas.renderAll();
 	}
 
@@ -370,7 +369,7 @@ export class EditorComponent implements OnInit {
 				stroke: 'Gainsboro',
 				selectable: false,
 				evented: false,
-				strokeWidth: 1,
+				strokeWidth: 3,
 			}));
 		}
 
@@ -379,7 +378,7 @@ export class EditorComponent implements OnInit {
 				stroke: 'Gainsboro',
 				selectable: false,
 				evented: false,
-				strokeWidth: 1,
+				strokeWidth: 3,
 			}));
 		}
 	}
@@ -392,7 +391,6 @@ export class EditorComponent implements OnInit {
 				return 'collections'
 		}
 	}
-
 	select(item: Drawable | { type: DisplayType, ref: Asset }): void {
 		if ("image" in item) {
 			this.selectedNonDrawable = false;
@@ -403,6 +401,7 @@ export class EditorComponent implements OnInit {
 			this.canvas.discardActiveObject();
 			this.selectedNonDrawable = false;
 			this.canvas.renderAll();
+			console.log("something")
 		}
 	}
 
@@ -413,7 +412,7 @@ export class EditorComponent implements OnInit {
 			.filter(({ asset }) => asset.assetCollection === undefined);
 		console.log("Assets: ", assets);
 		const dialogRef = this.dialog.open(CollectionDialogComponent, {
-			width: '400px',
+			width: '450px',
 			data: {
 				defaultSelection,
 				assets,
@@ -424,6 +423,7 @@ export class EditorComponent implements OnInit {
 			if (re !== undefined) {
 				let { newCollection, file } = re;
 				this.project.assetCollections.push(newCollection);
+				//what this loop is for?
 				for (let index of newCollection.assets) {
 					this.project.assets[index].assetCollection = this.project.assetCollections.length - 1;
 				}
@@ -436,9 +436,7 @@ export class EditorComponent implements OnInit {
 							this.projectService.addThumbnailToCollection(this.projectId, this.project.assetCollections.length - 1, file).subscribe(
 								(uploadUrl) => {
 									this.projectService.uploadAsset(uploadUrl, file.files[0]).subscribe(
-										() => {
-											this.refreshProject();
-										}
+										() => this.reloadProject.emit()
 									);
 								}
 							);
@@ -453,40 +451,115 @@ export class EditorComponent implements OnInit {
 		});
 	}
 
-	loadDrawableImage(drawable: Drawable, url: string): void {
-		if (drawable.ref.position === undefined) {
-			drawable.ref.position = {
-				x: 0,
-				y: 0
+	newTag() {
+		const dialogRef = this.dialog.open(TagDialogComponent, {
+			width: '400px',
+			data: {
+				tags: this.project.projectTags
 			}
-		}
+		});
 
-		if (drawable.ref.scale === undefined) {
-			drawable.ref.scale = {
-				x: 1,
-				y: 1
+		dialogRef.afterClosed().subscribe((re) => {
+			if (re !== undefined) {
+				let { newTag } = re;
+				this.project.projectTags.push(newTag);
+				console.log(this.project.projectTags);
+				console.log("New Tag Uploaded! Check MongoDB");
+				this.projectService.saveProject(this.projectId, this.project).subscribe(
+					() => { this.snackBar.open("Project Saved", undefined, { duration: environment.editor.autoSaveBarDuration }); },
+					err => {
+						console.log(err);
+					}
+				);
+				this.project.__v++;
 			}
-		}
+		});
+	}
 
-		drawable.ref.angle = drawable.ref.angle || 0;
+	loadDrawableImage(drawable: Drawable, url: string, regions: RegionGroup[]): void {
+		drawable.ref.position ??= {
+			x: 0,
+			y: 0
+		}
+		drawable.ref.scale ??= {
+			x: 1,
+			y: 1
+		}
+		drawable.ref.angle ??= 0;
 
 		fabric.Image.fromURL(url, img => {
-			drawable.image = img;
+			let regionImgs = regions.map(regionGroup =>
+				regionGroup.regions.map(
+					region => {
+						let shape: fabric.Rect | fabric.Circle;
+						const globalOptions: fabric.IRectOptions = {
+							fill: (regionGroup.color ?? environment.editor.regions.defaultRegionGroupColor) + environment.editor.regions.regionFillTransparency,
+							stroke: (regionGroup.color ?? environment.editor.regions.defaultRegionGroupColor),
+							strokeWidth: 10,
+							strokeDashArray: [20, 20],
+							originX: 'center',
+							originY: 'center',
+							visible: false,
+						};
+
+						if (region.shape == 'Square') {
+							shape = new fabric.Rect({
+								width: .1 * img.width,
+								height: .1 * img.height,
+								...region.params.nonpoly,
+								...globalOptions,
+							});
+						} else if (region.shape == 'Circle') {
+							shape = new fabric.Circle({
+								radius: .05 * (img.width + img.height),
+								...region.params.nonpoly,
+								...globalOptions,
+							});
+						}
+						return shape;
+					}
+				)
+			);
+
+			let group = new fabric.Group([img, ...regionImgs.flat()], {
+				left: drawable.ref.position.x,
+				top: drawable.ref.position.y,
+				scaleX: drawable.ref.scale.x,
+				scaleY: drawable.ref.scale.y,
+				angle: drawable.ref.angle,
+			});
+
+			drawable.image = group;
+			drawable.regionGroups = regionImgs;
 
 			this.addDrawableEvents(drawable);
-			this.canvas.add(img);
+			this.canvas.add(group);
+			this.canvas.requestRenderAll();
 		}, {
-			left: drawable.ref.position.x,
-			top: drawable.ref.position.y,
-			scaleX: drawable.ref.scale.x,
-			scaleY: drawable.ref.scale.y,
-			angle: drawable.ref.angle,
+			originX: 'center',
+			originY: 'center',
 		});
 	}
 
 	addDrawableEvents(drawable: Drawable): void {
 		drawable.image.on('selected', e => {
 			this.selectedElement = drawable;
+			console.log('selecty');
+			this.assetTags = this.selectedElement.ref.tags.map(idx => this.project.projectTags[idx]);
+
+			if (drawable.type == DisplayType.Asset) {
+				drawable.regionGroups.forEach(
+					(regionGroup, groupIndex) => regionGroup.forEach(
+						region => {
+							region.visible = (drawable.ref as Asset).regionGroups[groupIndex].visible;
+						}));
+
+				// Need to set dirty flag, otherwise Fabric will assume that each invisible
+				// group member is still invisible
+				drawable.image.dirty = true;
+
+				this.canvas.requestRenderAll();
+			}
 
 			this.rightNav.open();
 		});
@@ -502,24 +575,197 @@ export class EditorComponent implements OnInit {
 			};
 			drawable.ref.angle = drawable.image.angle;
 
-			this.dirty = true;
+			this.dirty.emit();
 		});
 	}
 
+
+	tagDrop(event: CdkDragDrop<Tag[]>) {
+		if (event.previousContainer === event.container) {
+			moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
+			if (event.previousContainer.id == "rightList") {
+				moveItemInArray(this.selectedElement.ref.tags, event.previousIndex, event.currentIndex)
+				this.dirty.emit();
+			}
+		}
+		else {
+			this.assetTags.splice(event.currentIndex, 0, this.project.projectTags[event.previousIndex]);
+			this.selectedElement.ref.tags.splice(event.currentIndex, 0, event.previousIndex);
+			console.log("dropping off tag from to assetTags")
+			this.dirty.emit();
+		}
+
+	}
+
+	@ViewChild('tagInput') tagInput: ElementRef<HTMLInputElement>;
+	@ViewChild('auto') matAutocomplete: MatAutocomplete;
+
+
+	private _filter(value: Tag): Tag[] {
+		const filterValue = value.name.toLowerCase();
+		return this.project.projectTags.filter(tag => tag.name.toLowerCase().indexOf(filterValue) === 0);
+	}
+
+	add(event: MatChipInputEvent): void {
+		const input = event.input;
+		const value = event.value;
+
+		if (this.project.projectTags.find(tag => tag.name == value)) {
+			this.assetTags.push(this.project.projectTags.find(tag => tag.name == value));
+			this.selectedElement.ref.tags.push(this.project.projectTags.findIndex(tag => tag.name == value));
+			this.dirty.emit();
+		}
+		// Reset the input value
+		if (input) {
+			input.value = '';
+		}
+
+		this.tagCtrl.setValue(null);
+	}
+
+	remove(tag: Tag): void {
+		const index = this.assetTags.indexOf(tag);
+
+		if (index >= 0) {
+			this.assetTags.splice(index, 1);
+			this.selectedElement.ref.tags.splice(index, 1)
+			this.dirty.emit();
+		}
+	}
+
+	selected(event: MatAutocompleteSelectedEvent): void {
+		this.assetTags.push(this.project.projectTags.find(tag => tag.name == event.option.viewValue));
+		this.selectedElement.ref.tags.push(this.project.projectTags.findIndex(tag => tag.name == event.option.viewValue));
+		this.dirty.emit();
+		this.tagInput.nativeElement.value = '';
+		this.tagCtrl.setValue(null);
+	}
+
+
 	uploadAssetsPopup() {
 		const dialogRef = this.dialog.open(AssetUploadDialogComponent, {
-			width: '400px',
+			width: '450px',
 			data: {
 				collections: this.project.assetCollections.map((collection, index) => ({ collection, index })),
 			},
 		});
 
 		dialogRef.afterClosed().subscribe(
-			({ files, collection }) => {
-				console.log("Collection selected: " + collection);
-				this.uploadNewAssets(files, collection === -1, collection);
+			re => {
+				if (re !== undefined) {
+					let { files, collection } = re;
+					this.uploadNewAssets(files, collection === -1, collection);
+				}
 			}
 		)
 	}
 
+	newRegionGroup(asset: Asset): void {
+		asset.regionGroups.push({
+			regions: [],
+			visible: true,
+			maps: [],
+		});
+		this.dirty.emit();
+	}
+
+	asAsset(drawable: Drawable): Asset {
+		if (drawable.type == DisplayType.Asset) {
+			return drawable.ref as Asset;
+		} else {
+			throw new Error('Drawable not actually an asset!');
+		}
+	}
+
+	deleteRegionGroupFromSelected(regionGroupIndex: number): void {
+		this.selectedElement.regionGroups[regionGroupIndex].forEach(
+			regionImg => this.selectedElement.image.removeWithUpdate(regionImg)
+		);
+		(this.selectedElement.ref as Asset).regionGroups.splice(regionGroupIndex, 1);
+		this.selectedElement.regionGroups.splice(regionGroupIndex, 1);
+		this.canvas.requestRenderAll();
+	}
+
+	changeRegionGroupColor(regionGroupIndex: number): void {
+		let regionGroup = (this.selectedElement.ref as Asset).regionGroups[regionGroupIndex];
+		this.selectedElement.regionGroups[regionGroupIndex].forEach(
+			regionImg => {
+				regionImg.fill = (regionGroup.color ?? environment.editor.regions.defaultRegionGroupColor) + environment.editor.regions.regionFillTransparency;
+				regionImg.stroke = (regionGroup.color ?? environment.editor.regions.defaultRegionGroupColor);
+			}
+		)
+		// Must be marked dirty so that group sub-objects get updated
+		this.selectedElement.image.dirty = true;
+		this.canvas.requestRenderAll();
+	}
+
+	regionGroupEditedCallback(): () => void {
+		return () => {
+			// In the region editor, we may have changed the number of regions in a region group.
+			// There should be a better way to do this, but I'm crunched on time so
+			// instead I'm just going to reload the whole project. 🤷
+			this.addProjectToCanvas();
+		};
+	}
+
+	changeGroupVisibility(regionGroupIndex: number): void {
+		let group = (this.selectedElement.ref as Asset).regionGroups[regionGroupIndex];
+		group.visible = !group.visible;
+
+		this.selectedElement.regionGroups[regionGroupIndex].forEach(regionImg => regionImg.visible = group.visible);
+		this.selectedElement.image.dirty = true;
+		this.canvas.requestRenderAll();
+	}
+
+};
+
+function UniqueTagNameValidator(tags: Tag[]): ValidatorFn {
+	return (control: AbstractControl): { [key: string]: any } | null => {
+		const forbidden = tags.some((tag) => tag.name == control.value);
+		return forbidden ? { uniqueTagName: { value: control.value } } : null;
+	};
+}
+
+@Component({
+	selector: 'tag-dialog',
+	templateUrl: 'tag-dialog.component.html',
+})
+export class TagDialogComponent {
+	public disabled = false;
+	public color: ThemePalette = 'primary';
+	public touchUi = false;
+	colorCtr: AbstractControl = new FormControl(null);
+
+	public options = [
+		{ value: true, label: 'True' },
+		{ value: false, label: 'False' }
+	];
+
+	public listColors = ['primary', 'accent', 'warn'];
+
+	newTagForm = new FormGroup({
+		name: new FormControl('', [Validators.required, UniqueTagNameValidator(this.data.tags)]),
+	});
+
+	constructor(
+		public dialogRef: MatDialogRef<TagDialogComponent>,
+		@Inject(MAT_DIALOG_DATA) public data: TagDialogData) { }
+
+
+	ngAfterViewInit() {
+		console.log(this.data);
+	}
+
+	onNoClick(): void {
+		this.dialogRef.close();
+	}
+
+	onOkClick(): void {
+		this.dialogRef.close({
+			newTag: {
+				name: this.newTagForm.get("name").value,
+				color: this.colorCtr.value?.toHexString()
+			},
+		});
+	}
 }

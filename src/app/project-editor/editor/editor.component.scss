@@ -1,26 +1,14 @@
-#toolkit-canvas-container {
-	position: relative;
-	overflow: hidden;
-}
-
-#toolkit-canvas {
-	height: 100%;
-	width: 100%;
-}
+@import '../editor-styles.scss';
 
 .example-tree-invisible {
 	display: none;
-  }
-  
+}
+
 .example-tree ul,
 .example-tree li {
 	margin-top: 0;
 	margin-bottom: 0;
 	list-style-type: none;
-}
-
-mat-sidenav {
-	width: 300px;
 }
 
 .type-icon {
@@ -37,9 +25,18 @@ mat-sidenav {
 	width: 100%;
 }
 
-#assets-panel {
-	.asset-button {
-		margin-top: 10px;
-		width: 100%
-	}
+button.region-group {
+	margin-top: 10px;
+	width: 100%;
+}
+
+.tag-button{
+	margin-top: 10px !important;
+}
+
+button.group-name {
+	width: 100%;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	display: flex;
 }

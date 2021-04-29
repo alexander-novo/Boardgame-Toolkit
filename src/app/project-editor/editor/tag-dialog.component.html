@@ -1,0 +1,27 @@
+<h1 mat-dialog-title>New Tag</h1>
+<div mat-dialog-content>
+	<form [formGroup]="newTagForm">
+		<mat-form-field>
+			<mat-label>Name</mat-label>
+			<input required matInput formControlName="name">
+			<mat-error *ngIf="newTagForm.get('name').hasError('required')">
+				Tag name is required.
+			</mat-error>
+			<mat-error *ngIf="newTagForm.get('name').hasError('uniqueTagName')">
+				Tag name must be unique.
+			</mat-error>
+		</mat-form-field>
+	</form>
+	<mat-form-field>
+		<mat-label>Tag Color</mat-label>
+		<input matInput [ngxMatColorPicker]="picker" [formControl]="colorCtr">
+		<ngx-mat-color-toggle matSuffix [for]="picker">
+		</ngx-mat-color-toggle>
+		<ngx-mat-color-picker #picker ></ngx-mat-color-picker>
+	</mat-form-field>
+</div>
+<!-- add div here for the color selector and use that color for chips-->
+<div mat-dialog-actions>
+	<button mat-button (click)="onNoClick()">No Thanks</button>
+	<button mat-button [disabled]="!newTagForm.valid" (click)="onOkClick()" cdkFocusInitial>Ok</button>
+</div>

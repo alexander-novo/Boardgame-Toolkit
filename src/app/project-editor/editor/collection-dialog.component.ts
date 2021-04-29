@@ -7,13 +7,14 @@ import { Asset } from "src/app/services/project.service";
 import { environment } from "src/environments/environment";
 
 export interface CollectionDialogData {
-	assets: Array<{ asset: Asset, index: number }>;
+	assets: { asset: Asset, index: number }[];
 	defaultSelection: number[];
 }
 
 @Component({
 	selector: 'collection-dialog',
 	templateUrl: 'collection-dialog.component.html',
+	styleUrls: ['collection-dialog.component.scss'],
 })
 export class CollectionDialogComponent {
 	@ViewChild('collectionList') collectionList: MatSelectionList;
