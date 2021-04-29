@@ -11,6 +11,7 @@ import { MaterialFileInputModule } from 'ngx-material-file-input';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { TimeagoModule } from 'ngx-timeago';
+import { LightboxModule } from 'ngx-lightbox';
 
 import { AngularMaterialModule } from '../angular-material.module';
 import { AppRoutingModule } from '../app-routing.module';
@@ -51,6 +52,7 @@ import { LobbyListComponent } from './lobby-list/lobby-list.component';
 		MatIconModule,
 		MatButtonModule,
 		LayoutModule,
+		LightboxModule,
 	]
 })
 export class CommonAppModule { }
