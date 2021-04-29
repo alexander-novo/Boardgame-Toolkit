@@ -60,7 +60,7 @@
 
 				<mat-chip-list [multiple]="false" cdkDropList id="leftList" [cdkDropListData]="project.projectTags"
 					(cdkDropListDropped)="tagDrop($event)" [cdkDropListConnectedTo]="['rightList']">
-					<mat-chip cdkDrag *ngFor="let tag of project.projectTags">
+					<mat-chip [style.background-color]="tag.color" cdkDrag *ngFor="let tag of project.projectTags">
 						{{tag.name}}
 					</mat-chip>
 				</mat-chip-list>
@@ -118,7 +118,7 @@
 						<input placeholder="Tag Search" #tagInput [formControl]="tagCtrl" [matAutocomplete]="auto"
 							[matChipInputFor]="chipList" [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
 							(matChipInputTokenEnd)="add($event)">
-						<mat-chip cdkDrag [removable] (removed)="remove(tag)" *ngFor="let tag of assetTags">{{tag.name}}
+						<mat-chip [style.background-color]="tag.color" cdkDrag [removable] (removed)="remove(tag)" *ngFor="let tag of assetTags">{{tag.name}}
 							<mat-icon matChipRemove>cancel</mat-icon>
 						</mat-chip>
 					</mat-chip-list>

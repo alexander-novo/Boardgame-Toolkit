@@ -116,6 +116,7 @@ const ProjectSchema = new Schema({
 	assetCollections: [AssetCollectionSchema],
 	projectTags: [{
 		name: { type: String, required: true },
+		color: { type: String, required: false, validator: [colorValidator, 'Invalid Color'] },
 	}],
 	camera: {
 		x: { type: Number, required: true, default: 0 },

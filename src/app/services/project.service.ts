@@ -65,8 +65,7 @@ export interface Tag {
 	_id: string;
 	name: string;
 	selected: true;
-	//dataNumber: number;
-	//dataString: string;
+	color?: string;
 }
 
 export interface AssetCollection {
