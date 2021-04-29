@@ -107,8 +107,8 @@ export class EditorComponent {
 	) {
 		this.dataSource.data = [];
 		this.filteredTags = this.tagCtrl.valueChanges.pipe(
-			startWith(null as string),
-			map((tag: string | null) => tag ? this._filter(tag) : this.assetTags.slice()));
+			startWith(null as Tag),
+			map((tag: Tag | null) => tag ? this._filter(tag) : this.assetTags.slice()));
 	}
 
 	onFileDrop(event: Array<File>) {
@@ -601,11 +601,11 @@ export class EditorComponent {
 	@ViewChild('auto') matAutocomplete: MatAutocomplete;
 
 
-	private _filter(value: String): Tag[] {
-		console.log("testing the filter value");
-		const filterValue = value.toLowerCase();
+	private _filter(value: Tag): Tag[] {
+		const filterValue = value.name.toLowerCase();
 		return this.project.projectTags.filter(tag => tag.name.toLowerCase().indexOf(filterValue) === 0);
 	}
+
 	add(event: MatChipInputEvent): void {
 		const input = event.input;
 		const value = event.value;
@@ -622,12 +622,13 @@ export class EditorComponent {
 
 		this.tagCtrl.setValue(null);
 	}
+
 	remove(tag: Tag): void {
 		const index = this.assetTags.indexOf(tag);
 
 		if (index >= 0) {
 			this.assetTags.splice(index, 1);
-			this.selectedElement.ref.tags.splice(index,1)
+			this.selectedElement.ref.tags.splice(index, 1)
 			this.dirty.emit();
 		}
 	}
