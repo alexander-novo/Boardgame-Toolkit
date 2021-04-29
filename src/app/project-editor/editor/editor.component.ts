@@ -585,14 +585,14 @@ export class EditorComponent {
 			moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
 			if (event.previousContainer.id == "rightList") {
 				moveItemInArray(this.selectedElement.ref.tags, event.previousIndex, event.currentIndex)
-				this.dirty.emit;
+				this.dirty.emit();
 			}
 		}
 		else {
 			this.assetTags.splice(event.currentIndex, 0, this.project.projectTags[event.previousIndex]);
 			this.selectedElement.ref.tags.splice(event.currentIndex, 0, event.previousIndex);
 			console.log("dropping off tag from to assetTags")
-			this.dirty.emit;
+			this.dirty.emit();
 		}
 
 	}
@@ -602,7 +602,8 @@ export class EditorComponent {
 
 
 	private _filter(value: String): Tag[] {
-		const filterValue = value.toLowerCase()
+		console.log("testing the filter value");
+		const filterValue = value.toLowerCase();
 		return this.project.projectTags.filter(tag => tag.name.toLowerCase().indexOf(filterValue) === 0);
 	}
 	add(event: MatChipInputEvent): void {
@@ -612,7 +613,7 @@ export class EditorComponent {
 		if (this.project.projectTags.find(tag => tag.name == value)) {
 			this.assetTags.push(this.project.projectTags.find(tag => tag.name == value));
 			this.selectedElement.ref.tags.push(this.project.projectTags.findIndex(tag => tag.name == value));
-			this.dirty.emit;
+			this.dirty.emit();
 		}
 		// Reset the input value
 		if (input) {
@@ -626,14 +627,15 @@ export class EditorComponent {
 
 		if (index >= 0) {
 			this.assetTags.splice(index, 1);
-			this.dirty.emit;
+			this.selectedElement.ref.tags.splice(index,1)
+			this.dirty.emit();
 		}
 	}
 
 	selected(event: MatAutocompleteSelectedEvent): void {
 		this.assetTags.push(this.project.projectTags.find(tag => tag.name == event.option.viewValue));
 		this.selectedElement.ref.tags.push(this.project.projectTags.findIndex(tag => tag.name == event.option.viewValue));
-		this.dirty.emit;
+		this.dirty.emit();
 		this.tagInput.nativeElement.value = '';
 		this.tagCtrl.setValue(null);
 	}
@@ -728,7 +730,6 @@ function UniqueTagNameValidator(tags: Tag[]): ValidatorFn {
 	templateUrl: 'tag-dialog.component.html',
 })
 export class TagDialogComponent {
-	//@ViewChild('tagList') tagList: MatSelectionList;
 	public disabled = false;
 	public color: ThemePalette = 'primary';
 	public touchUi = false;
@@ -743,7 +744,6 @@ export class TagDialogComponent {
 
 	newTagForm = new FormGroup({
 		name: new FormControl('', [Validators.required, UniqueTagNameValidator(this.data.tags)]),
-		//data: new FormControl('',)
 	});
 
 	constructor(
@@ -762,7 +762,8 @@ export class TagDialogComponent {
 	onOkClick(): void {
 		this.dialogRef.close({
 			newTag: {
-				name: this.newTagForm.get("name").value
+				name: this.newTagForm.get("name").value,
+				color: this.colorCtr.value?.toHexString()
 			},
 		});
 	}
