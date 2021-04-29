@@ -121,7 +121,6 @@
 						<mat-chip cdkDrag [removable] (removed)="remove(tag)" *ngFor="let tag of assetTags">{{tag.name}}
 							<mat-icon matChipRemove>cancel</mat-icon>
 						</mat-chip>
-
 					</mat-chip-list>
 					<mat-autocomplete #auto="matAutocomplete" (optionSelected)="selected($event)">
 						<mat-option *ngFor="let tag of filteredTags | async" [value]="tag">

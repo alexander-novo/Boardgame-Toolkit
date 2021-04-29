@@ -7,11 +7,13 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ResizeSensor } from 'css-element-queries';
 import { fabric } from "fabric";
 import { environment } from 'src/environments/environment';
-import { Asset, Region, RegionGroup } from '../../services/project.service';
+import { Asset, Edge, Region, RegionGroup } from '../../services/project.service';
 
 interface DrawableRegion {
 	region: Region;
+	regionIndex: number;
 	img: fabric.Object;
+	edges: fabric.Object[];
 }
 
 @Component({
@@ -67,8 +69,16 @@ export class RegionEditorComponent {
 	isDraggingCanvas = false;
 	newRegionType: 'Square' | 'Circle' | 'Polygon';
 	selectedRegion: DrawableRegion;
+	selectedRegionEdges: Edge[][];
 	copiedRegion: DrawableRegion;
 	drawables: DrawableRegion[] = [];
+	addEdgeToMapIndex: number;
+	newEdgeMode: boolean = false;
+	lineArrow: any;
+	currentlyDrawingArrow: any;
+	selectNewRegionAfterAddingEdge = true;
+	didDragCanvas = false;
+	lastCanvasMouseMoveEvent: Event;
 
 	// TODO: look into destroying this
 	private resizeSensor: ResizeSensor;
@@ -104,20 +114,55 @@ export class RegionEditorComponent {
 		fabric.Object.prototype.cornerColor = 'black';
 		fabric.Object.prototype.borderScaleFactor = 2;
 		fabric.Object.prototype.borderDashArray = [5, 5];
+		// Take from https://www.thirdrocktechkno.com/blog/draw-an-arrow-using-html-5-canvas-and-fabricjs/
+		this.lineArrow ??= fabric.util.createClass(fabric.Line, {
+
+			type: 'lineArrow',
+
+			initialize: function (element, options) {
+				options || (options = {});
+				this.callSuper('initialize', element, options);
+			},
+
+			toObject: function () {
+				return fabric.util.object.extend(this.callSuper('toObject'), undefined);
+			},
+
+			_render: function (ctx) {
+				this.callSuper('_render', ctx);
+
+				// do not render if width/height are zeros or object is not visible
+				// if (this.width === 0 || this.height === 0 || !this.visible) return;
+				if (!this.visible) return;
+
+				ctx.save();
+
+				var xDiff = this.x2 - this.x1;
+				var yDiff = this.y2 - this.y1;
+				var angle = Math.atan2(yDiff, xDiff);
+				ctx.translate((this.x2 - this.x1) / 2, (this.y2 - this.y1) / 2);
+				ctx.rotate(angle);
+				ctx.beginPath();
+				//move 10px in front of line to start the arrow so it does not have the square line end showing in front (0,0)
+				ctx.moveTo(10, 0);
+				ctx.lineTo(-20, 15);
+				ctx.lineTo(-20, -15);
+				ctx.closePath();
+				ctx.fillStyle = this.stroke;
+				ctx.fill();
+
+				ctx.restore();
+
+			}
+		});
+
 		// We need fireRightClick for right click panning
 		// renderOnAddRemove set to false for performance
 		this.canvas = new fabric.Canvas(canvas, {
 			fireRightClick: true,
 			renderOnAddRemove: false,
+			stopContextMenu: true, // <--  prevent context menu from showing
 		});
-
-		// Disable context menu
-		// TODO: do this more intelligently. Without waiting a second, it only finds the upper-canvas in the project editor
-		setTimeout(() => {
-			(document.getElementsByClassName('upper-canvas')[0] as HTMLElement).addEventListener('contextmenu', (e) => {
-				e.preventDefault();
-			});
-		}, 1000);
 
 		// Load the asset that this region group is for
 		fabric.Image.fromURL(this.asset.url, img => {
@@ -144,9 +189,14 @@ export class RegionEditorComponent {
 		initialVpt[5] = this.canvas.height / 2;
 
 		this.canvas.on('selection:cleared', opt => {
-			this.selectedRegion = null;
-			this.rightNav.close();
-			this.regionList.selectedOptions.clear();
+			if (this.newEdgeMode) {
+				this.canvas.setActiveObject(this.selectedRegion.img);
+			} else {
+				this.selectedRegion = null;
+				this.selectedRegionEdges = [];
+				this.rightNav.close();
+				this.regionList.selectedOptions.clear();
+			}
 		});
 
 		// Zoom using mouse wheel
@@ -188,6 +238,7 @@ export class RegionEditorComponent {
 			// If right-click
 			if (e.button == 2) {
 				this.isDraggingCanvas = true;
+				this.didDragCanvas = false;
 				this.canvas.selection = false;
 
 				this.canvas.setCursor('grabbing');
@@ -223,10 +274,33 @@ export class RegionEditorComponent {
 				this.canvas.setCursor('grabbing');
 				this.canvas.setViewportTransform(this.canvas.viewportTransform);
 				this.canvas.requestRenderAll();
+
+				this.didDragCanvas = true;
+			}
+
+			if (this.newEdgeMode) {
+				let pointer = this.canvas.getPointer(e);
+				this.currentlyDrawingArrow.set({
+					x2: pointer.x,
+					y2: pointer.y,
+				});
+				this.currentlyDrawingArrow.setCoords();
+				this.canvas.requestRenderAll();
+
+				this.lastCanvasMouseMoveEvent = e;
 			}
 		});
 
 		this.canvas.on('mouse:up', opt => {
+
+			if (this.isDraggingCanvas && !this.didDragCanvas) {
+				this.canvas.remove(this.currentlyDrawingArrow);
+				this.currentlyDrawingArrow = null;
+				this.newEdgeMode = false;
+				this.didDragCanvas = false;
+				this.drawables.forEach(drawable => drawable.img.selectable = true);
+				this.canvas.requestRenderAll();
+			}
 			this.isDraggingCanvas = false;
 			this.canvas.selection = true;
 
@@ -242,12 +316,13 @@ export class RegionEditorComponent {
 		this.canvas.clear();
 		this.drawables = [];
 		this.canvas.add(this.assetImg);
-		this.group.regions.forEach(region => this.addRegionToCanvas(region));
+		this.group.regions.forEach((region, regionIndex) => this.addRegionToCanvas(region, regionIndex));
+		this.group.regions.forEach((region, regionIndex) => this.addEdgesToCanvas(region, regionIndex))
 		this.canvas.requestRenderAll();
 	}
 
 	// Called from a variety of places, such as adding a new region or loading all regions initially.
-	addRegionToCanvas(region: Region) {
+	addRegionToCanvas(region: Region, regionIndex: number) {
 		let shape: fabric.Rect | fabric.Circle;
 		const globalOptions: fabric.IRectOptions = {
 			fill: (this.group.color ?? environment.editor.regions.defaultRegionGroupColor) + environment.editor.regions.regionFillTransparency,
@@ -274,17 +349,61 @@ export class RegionEditorComponent {
 
 		let drawable: DrawableRegion = {
 			region,
+			regionIndex,
 			img: shape,
+			edges: [],
 		};
 
 		this.drawables.push(drawable);
 
 		shape.on('selected', e => {
+			if (this.selectedRegion == drawable) return;
+
 			this.selectedRegion = drawable;
+			this.selectedRegionEdges = (this.selectedRegion.region.edges as any[]).reduce((acc, cur) => { console.log("acc: ", acc, " cur: ", cur); acc[cur.map].push(cur); return acc; }, new Array(this.group.maps.length).fill([]));
 			this.regionList.selectedOptions.clear();
 			this.regionList.selectedOptions.select(this.regionList.options.find(option => option.value == this.selectedRegion));
 			this.rightNav.open();
 		});
+
+		shape.on('mousedown', e => {
+			// Left Click
+			if (this.newEdgeMode && e.button === 1) {
+				this.currentlyDrawingArrow.set({
+					x2: shape.left,
+					y2: shape.top,
+				});
+				this.currentlyDrawingArrow.setCoords();
+
+				this.selectedRegion.edges.push(this.currentlyDrawingArrow);
+
+				this.selectedRegion.region.edges.push({
+					map: this.addEdgeToMapIndex,
+					destination: regionIndex,
+				});
+
+				if (this.selectNewRegionAfterAddingEdge) {
+					this.canvas.setActiveObject(shape);
+				}
+
+				let pointer = this.canvas.getPointer(this.lastCanvasMouseMoveEvent);
+				let map = this.group.maps[this.addEdgeToMapIndex];
+				this.currentlyDrawingArrow = new this.lineArrow([this.selectedRegion.img.left, this.selectedRegion.img.top, pointer.x, pointer.y], {
+					originX: 'center',
+					originY: 'center',
+					selectable: false,
+					hasBorders: false,
+					hasControls: false,
+					fill: map.color ?? this.group.color ?? environment.editor.regions.defaultRegionGroupColor,
+					stroke: map.color ?? this.group.color ?? environment.editor.regions.defaultRegionGroupColor,
+					strokeWidth: 5,
+					evented: false,
+				});
+				this.canvas.add(this.currentlyDrawingArrow);
+				this.canvas.requestRenderAll();
+				this.dirty.emit();
+			}
+		})
 
 		// Modified when changes are finished i.e. user unclicks.
 		// TODO: need to change for poly eventually.
@@ -303,12 +422,37 @@ export class RegionEditorComponent {
 		});
 
 		this.canvas.add(shape);
+
+		return shape;
+	}
+
+	addEdgesToCanvas(region: Region, regionIndex: number) {
+		region.edges.forEach(edge => {
+			let map = this.group.maps[edge.map];
+			let destination = this.drawables[edge.destination];
+			let edgeArrow = new this.lineArrow([this.drawables[regionIndex].img.left, this.drawables[regionIndex].img.top, destination.img.left, destination.img.top], {
+				originX: 'center',
+				originY: 'center',
+				selectable: false,
+				hasBorders: false,
+				hasControls: false,
+				fill: map.color ?? this.group.color ?? environment.editor.regions.defaultRegionGroupColor,
+				stroke: map.color ?? this.group.color ?? environment.editor.regions.defaultRegionGroupColor,
+				strokeWidth: 5,
+				evented: false,
+			});
+
+			this.drawables[regionIndex].edges.push(edgeArrow);
+			this.canvas.add(edgeArrow);
+			this.canvas.requestRenderAll();
+		})
 	}
 
 	// Called when new region button is clicked.
 	newRegion() {
 		let newRegion: Region = {
 			shape: this.newRegionType,
+			edges: [],
 			params: {
 				nonpoly: {
 					top: 0,
@@ -321,7 +465,7 @@ export class RegionEditorComponent {
 			}
 		};
 		this.group.regions.push(newRegion);
-		this.addRegionToCanvas(newRegion);
+		this.addRegionToCanvas(newRegion, this.group.regions.length - 1);
 		this.canvas.requestRenderAll();
 		this.dirty.emit();
 	}
@@ -331,6 +475,11 @@ export class RegionEditorComponent {
 	selectRegion(selectionChange: MatSelectionListChange) {
 		// We'll call that code by setting the active object.
 		this.canvas.setActiveObject(selectionChange.source.selectedOptions.selected[0]?.value.img);
+		this.canvas.requestRenderAll();
+	}
+
+	selectRegionIndex(regionIndex: number) {
+		this.canvas.setActiveObject(this.drawables.find(drawable => drawable.regionIndex == regionIndex).img);
 		this.canvas.requestRenderAll();
 	}
 
@@ -349,9 +498,62 @@ export class RegionEditorComponent {
 			let newRegion: Region = JSON.parse(JSON.stringify(this.copiedRegion.region));
 			newRegion.name = (newRegion.name ?? 'New Region') + ' (Copy)';
 			this.group.regions.push(newRegion);
-			this.addRegionToCanvas(newRegion);
+			const newObject = this.addRegionToCanvas(newRegion, this.group.regions.length - 1);
+			this.canvas.setActiveObject(newObject);
 			this.canvas.requestRenderAll();
 			this.dirty.emit();
 		}
+	}
+
+	newMap(): void {
+		this.group.maps.push({
+			visible: true,
+		});
+		this.dirty.emit();
+	}
+
+	changeMapName(mapIndex: number): void {
+		let map = this.group.maps[mapIndex];
+		// TODO: popup
+		this.dirty.emit();
+	}
+
+	changeMapColor(mapIndex: number): void {
+		let map = this.group.maps[mapIndex];
+		// TODO: loop through all edges on the canvas and change their colors
+		this.dirty.emit();
+	}
+
+	toggleMapVisibility(mapIndex: number): void {
+		let map = this.group.maps[mapIndex];
+		map.visible = !map.visible;
+		// TODO: loop through all edges on the canvas and change visibility
+		this.dirty.emit();
+	}
+
+	deleteMap(mapIndex: number): void {
+		// TODO: remove all edges on the canvas associated with this group
+		this.group.maps.splice(mapIndex, 1);
+		this.dirty.emit();
+	}
+
+	startNewEdge(mapIndex: number): void {
+		let map = this.group.maps[mapIndex];
+		this.newEdgeMode = true;
+		this.drawables.forEach(drawable => drawable.img.selectable = false);
+		this.canvas.selection = false;
+		this.currentlyDrawingArrow = new this.lineArrow([this.selectedRegion.img.left, this.selectedRegion.img.top, this.selectedRegion.img.left, this.selectedRegion.img.top], {
+			originX: 'center',
+			originY: 'center',
+			selectable: false,
+			hasBorders: false,
+			hasControls: false,
+			fill: map.color ?? this.group.color ?? environment.editor.regions.defaultRegionGroupColor,
+			stroke: map.color ?? this.group.color ?? environment.editor.regions.defaultRegionGroupColor,
+			strokeWidth: 5,
+			evented: false,
+		});
+		this.canvas.add(this.currentlyDrawingArrow);
+		this.canvas.requestRenderAll();
 	}
 }

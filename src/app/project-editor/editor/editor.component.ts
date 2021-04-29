@@ -650,7 +650,6 @@ export class EditorComponent {
 			re => {
 				if (re !== undefined) {
 					let { files, collection } = re;
-					console.log("Collection selected: " + collection);
 					this.uploadNewAssets(files, collection === -1, collection);
 				}
 			}
@@ -661,6 +660,7 @@ export class EditorComponent {
 		asset.regionGroups.push({
 			regions: [],
 			visible: true,
+			maps: [],
 		});
 		this.dirty.emit();
 	}
