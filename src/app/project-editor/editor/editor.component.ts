@@ -107,8 +107,9 @@ export class EditorComponent {
 	) {
 		this.dataSource.data = [];
 		this.filteredTags = this.tagCtrl.valueChanges.pipe(
-			startWith(null as Tag),
-			map((tag: Tag | null) => tag ? this._filter(tag) : this.assetTags.slice()));
+			startWith(null as string),
+			map((tag: string | null) => tag ? this._filter(tag) : this.project.projectTags.filter(tag => !this.assetTags.some(assetTag => assetTag.name == tag.name)).slice()));
+
 	}
 
 	onFileDrop(event: Array<File>) {
@@ -562,6 +563,7 @@ export class EditorComponent {
 			}
 
 			this.rightNav.open();
+			this.tagCtrl.reset();
 		});
 
 		drawable.image.on('modified', e => {
@@ -601,9 +603,10 @@ export class EditorComponent {
 	@ViewChild('auto') matAutocomplete: MatAutocomplete;
 
 
-	private _filter(value: Tag): Tag[] {
-		const filterValue = value.name.toLowerCase();
-		return this.project.projectTags.filter(tag => tag.name.toLowerCase().indexOf(filterValue) === 0);
+	private _filter(value: string): Tag[] {
+		console.log(value);
+		const filterValue = value.toLowerCase();
+		return this.project.projectTags.filter(tag => tag.name.toLowerCase().indexOf(filterValue) === 0 && !this.assetTags.some(assetTag => assetTag.name == tag.name));
 	}
 
 	add(event: MatChipInputEvent): void {

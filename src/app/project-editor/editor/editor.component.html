@@ -122,7 +122,7 @@
 				<mat-expansion-panel-header>
 					<mat-panel-title>Tags</mat-panel-title>
 				</mat-expansion-panel-header>
-				<mat-form-field>
+				<mat-form-field style="width:100%;">
 					<mat-chip-list #chipList cdkDropList id="rightList" [cdkDropListConnectedTo]="['leftList']"
 						(cdkDropListDropped)="tagDrop($event)" [cdkDropListData]="assetTags">
 						<input placeholder="Tag Search" #tagInput [formControl]="tagCtrl" [matAutocomplete]="auto"

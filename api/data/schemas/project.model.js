@@ -114,7 +114,7 @@ const ProjectSchema = new Schema({
 	thumbnail: { type: String, required: false },
 	assets: [AssetSchema],
 	assetCollections: [AssetCollectionSchema],
-	published: { type: Boolean, required: true, default: true },
+	published: { type: Boolean, required: true, default: false },
 	projectTags: [{
 		name: { type: String, required: true },
 		color: { type: String, required: false, validator: [colorValidator, 'Invalid Color'] },
