@@ -64,3 +64,5 @@ Generated\ Files/
 # Secret key for Google ReCaptcha for local testing
 captcha_secret.json
 .env
+
+package-lock.json
