@@ -108,7 +108,12 @@ export class EditorComponent {
 		this.dataSource.data = [];
 		this.filteredTags = this.tagCtrl.valueChanges.pipe(
 			startWith(null as string),
+<<<<<<< HEAD
 			map((tag: string | null) => tag ? this._filter(tag) : this.project.projectTags.slice()));
+=======
+			map((tag: string | null) => tag ? this._filter(tag) : this.project.projectTags.filter(tag => !this.assetTags.some(assetTag => assetTag.name == tag.name)).slice()));
+
+>>>>>>> master
 	}
 
 	onFileDrop(event: Array<File>) {
@@ -562,6 +567,7 @@ export class EditorComponent {
 			}
 
 			this.rightNav.open();
+			this.tagCtrl.reset();
 		});
 
 		drawable.image.on('modified', e => {
@@ -601,11 +607,12 @@ export class EditorComponent {
 	@ViewChild('auto') matAutocomplete: MatAutocomplete;
 
 
-	private _filter(value: String): Tag[] {
-		console.log("testing the filter value");
+	private _filter(value: string): Tag[] {
+		console.log(value);
 		const filterValue = value.toLowerCase();
-		return this.project.projectTags.filter(tag => tag.name.toLowerCase().indexOf(filterValue) === 0);
+		return this.project.projectTags.filter(tag => tag.name.toLowerCase().indexOf(filterValue) === 0 && !this.assetTags.some(assetTag => assetTag.name == tag.name));
 	}
+
 	add(event: MatChipInputEvent): void {
 		const input = event.input;
 		const value = event.value;
@@ -622,12 +629,13 @@ export class EditorComponent {
 
 		this.tagCtrl.setValue(null);
 	}
+
 	remove(tag: Tag): void {
 		const index = this.assetTags.indexOf(tag);
 
 		if (index >= 0) {
 			this.assetTags.splice(index, 1);
-			this.selectedElement.ref.tags.splice(index,1)
+			this.selectedElement.ref.tags.splice(index, 1)
 			this.dirty.emit();
 		}
 	}
@@ -653,7 +661,6 @@ export class EditorComponent {
 			re => {
 				if (re !== undefined) {
 					let { files, collection } = re;
-					console.log("Collection selected: " + collection);
 					this.uploadNewAssets(files, collection === -1, collection);
 				}
 			}
@@ -664,6 +671,7 @@ export class EditorComponent {
 		asset.regionGroups.push({
 			regions: [],
 			visible: true,
+			maps: [],
 		});
 		this.dirty.emit();
 	}

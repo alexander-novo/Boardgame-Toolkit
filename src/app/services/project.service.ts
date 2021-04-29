@@ -3,9 +3,21 @@ import { Injectable } from '@angular/core';
 import { FileInput } from 'ngx-material-file-input';
 import { RegisterService } from './register.service';
 
+export interface Map {
+	name?: string,
+	color?: string,
+	visible: boolean,
+}
+
+export interface Edge {
+	map: number,
+	destination: number,
+}
+
 export interface Region {
 	name?: string;
 	shape: 'Square' | 'Circle' | 'Polygon';
+	edges: Edge[],
 	params: {
 		nonpoly?: {
 			top: number;
@@ -26,6 +38,7 @@ export interface RegionGroup {
 	color?: string;
 	visible: boolean;
 	regions: Region[];
+	maps: Map[];
 }
 
 export interface Asset {
@@ -86,6 +99,7 @@ export class Project {
 	assets: Asset[];
 	projectTags: Tag[];
 	assetCollections: AssetCollection[];
+	published: boolean;
 	camera: {
 		x: number;
 		y: number;

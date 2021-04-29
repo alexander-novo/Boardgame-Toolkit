@@ -4,9 +4,21 @@ const { Schema, model } = require("mongoose");
 
 const colorValidator = (v) => (/^#([0-9a-f]{3}){1,2}$/i).test(v)
 
+const MapSchema = new Schema({
+	name: { type: String, required: false },
+	color: { type: String, required: false, validator: [colorValidator, 'Invalid Color'] },
+	visible: { type: Boolean, required: true, default: true },
+});
+
+const EdgeSchema = new Schema({
+	map: { type: Number, required: true },
+	destination: { type: Number, required: true },
+});
+
 const RegionSchema = new Schema({
 	name: { type: String, required: false },
 	shape: { type: String, required: true, enum: ['Square', 'Circle', 'Polygon'] },
+	edges: [EdgeSchema],
 	params: {
 		type: {
 			nonpoly: {
@@ -26,6 +38,14 @@ const RegionSchema = new Schema({
 		},
 		required: true,
 	},
+});
+
+const RegionGroupSchema = new Schema({
+	name: { type: String, required: false },
+	color: { type: String, required: false, validator: [colorValidator, 'Invalid Color'] },
+	visible: { type: Boolean, required: true, default: true },
+	regions: [RegionSchema],
+	maps: [MapSchema],
 });
 
 const AssetSchema = new Schema({
@@ -54,12 +74,7 @@ const AssetSchema = new Schema({
 	assetCollection: { type: Number, required: false },
 	hiddenFromPlayers: { type: Boolean, required: true, default: false },
 	tags: [Number],
-	regionGroups: [{
-		name: { type: String, required: false },
-		color: { type: String, required: false, validator: [colorValidator, 'Invalid Color'] },
-		visible: { type: Boolean, required: true, default: true },
-		regions: [RegionSchema],
-	}],
+	regionGroups: [RegionGroupSchema],
 });
 
 const AssetCollectionSchema = new Schema({
@@ -99,6 +114,7 @@ const ProjectSchema = new Schema({
 	thumbnail: { type: String, required: false },
 	assets: [AssetSchema],
 	assetCollections: [AssetCollectionSchema],
+	published: { type: Boolean, required: true, default: false },
 	projectTags: [{
 		name: { type: String, required: true },
 		color: { type: String, required: false, validator: [colorValidator, 'Invalid Color'] },

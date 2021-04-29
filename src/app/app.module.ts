@@ -16,6 +16,7 @@ import { AngularMaterialModule } from './angular-material.module';
 import { TimeagoModule } from 'ngx-timeago';
 import { ProjectEditorModule } from './project-editor/project-editor.module';
 import { MonacoEditorModule } from '@sentinel-one/ngx-monaco-editor';
+import { LightboxModule } from 'ngx-lightbox';
 
 @NgModule({
 	declarations: [
@@ -31,6 +32,7 @@ import { MonacoEditorModule } from '@sentinel-one/ngx-monaco-editor';
 		HttpClientModule,
 		NgxMatColorPickerModule,
 		TimeagoModule.forRoot(),
+		LightboxModule,
 		JwtModule.forRoot({
 			config: {
 				tokenGetter: () => localStorage.getItem("jwt"),

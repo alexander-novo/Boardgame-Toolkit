@@ -51,9 +51,7 @@
 					New Collection
 				</button>
 			</mat-expansion-panel>
-		</mat-accordion>
-		<mat-accordion>
-			<mat-expansion-panel *ngIf="!!project">
+			<mat-expansion-panel expanded *ngIf="!!project">
 				<mat-expansion-panel-header>
 					<mat-panel-title>Tags</mat-panel-title>
 				</mat-expansion-panel-header>
@@ -65,10 +63,22 @@
 					</mat-chip>
 				</mat-chip-list>
 
-				<button class="tag-button" mat-raised-button color="primary" (click)="newTag()" id="new-tag">
+				<button class="list-action-button" mat-raised-button color="primary" (click)="newTag()" id="new-tag">
 					New Tag
 				</button>
+			</mat-expansion-panel>
+			<mat-expansion-panel *ngIf="!!project">
+				<mat-expansion-panel-header>
+					<mat-panel-title>Project Details</mat-panel-title>
+				</mat-expansion-panel-header>
 
+				<mat-form-field>
+					<mat-label>Project Name</mat-label>
+					<input matInput [(ngModel)]="project.name" (ngModelChange)="dirty.emit();">
+				</mat-form-field>
+				<mat-slide-toggle [(ngModel)]="project.published" (ngModelChange)="dirty.emit();">
+					Published
+				</mat-slide-toggle>
 			</mat-expansion-panel>
 		</mat-accordion>
 	</mat-sidenav>
@@ -112,16 +122,16 @@
 				<mat-expansion-panel-header>
 					<mat-panel-title>Tags</mat-panel-title>
 				</mat-expansion-panel-header>
-				<mat-form-field>
+				<mat-form-field style="width:100%;">
 					<mat-chip-list #chipList cdkDropList id="rightList" [cdkDropListConnectedTo]="['leftList']"
 						(cdkDropListDropped)="tagDrop($event)" [cdkDropListData]="assetTags">
 						<input placeholder="Tag Search" #tagInput [formControl]="tagCtrl" [matAutocomplete]="auto"
 							[matChipInputFor]="chipList" [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
 							(matChipInputTokenEnd)="add($event)">
-						<mat-chip [style.background-color]="tag.color" cdkDrag [removable] (removed)="remove(tag)" *ngFor="let tag of assetTags">{{tag.name}}
+						<mat-chip [style.background-color]="tag.color" cdkDrag [removable] (removed)="remove(tag)"
+							*ngFor="let tag of assetTags">{{tag.name}}
 							<mat-icon matChipRemove>cancel</mat-icon>
 						</mat-chip>
-
 					</mat-chip-list>
 					<mat-autocomplete #auto="matAutocomplete" (optionSelected)="selected($event)">
 						<mat-option *ngFor="let tag of filteredTags | async" [value]="tag">
