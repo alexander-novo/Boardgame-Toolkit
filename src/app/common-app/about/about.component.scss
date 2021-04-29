@@ -1,0 +1,69 @@
+body{margin-top:20px;}
+
+
+#team img {
+    border:1px solid #EBEBEB;
+	padding:10px;
+	background-color:#F5F5F5;
+	object-fit: cover;
+	width: calc(100% - 22px);
+	height: 100%;
+}
+
+#team h4 {
+	color:#555555;
+	font-size:20px;
+	font-weight:300;
+	margin:0 0 5px;
+	font-family:'Open Sans', Verdana, Geneva, sans-serif;
+	background-color:#EBEBEB;
+	padding:15px;
+}
+
+#team span {
+	font-size:12px;
+	font-weight:bold;
+	margin:10px 10px 5px;
+	display:block;
+}
+
+#team p {
+	color:#777777;
+	font-size:13px;
+	min-height:70px;
+	padding:0 10px 10px;
+}
+
+#team .team-member {
+	box-shadow:0 1px 5px 0 rgba(0,0,0,0.15);
+}
+
+#team .team-member .overlay-wrapper2 {
+	position:relative;
+	width: 300px;
+	background-color:#F5F5F5;
+}
+	
+#team .team-member .overlay-wrapper2 .overlay {
+    background-color:rgba(0, 0, 0, 0.7);
+	top:10px;
+    left:0;
+    display:none;
+    position:absolute;
+    right:0;
+	height:10%;
+	padding:0;
+	margin:0 11px;
+	text-align:center;
+}
+
+#team .team-member .overlay-wrapper2 .overlay i {
+	font-size:18px;
+	color:rgba(255, 255, 255, 0.8);
+	display:inline-block;
+	padding:10px 15px 0;
+}
+
+#team .team-member .overlay-wrapper2 .overlay i:hover {
+	color:rgba(255, 255, 255, 1);
+}

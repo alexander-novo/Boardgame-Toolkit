@@ -5,6 +5,7 @@ import { HomeComponent } from './home/home.component';
 import { LoginComponent } from './login/login.component';
 import { NewProjectComponent } from './new-project/new-project.component';
 import { RegisterComponent } from './register/register.component';
+import { AboutComponent } from './about/about.component';
 import { RecaptchaModule, RecaptchaFormsModule } from 'ng-recaptcha';
 import { MaterialFileInputModule } from 'ngx-material-file-input';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -28,6 +29,7 @@ import { LayoutModule } from '@angular/cdk/layout';
 		ForgotComponent,
 		HomeComponent,
 		NewProjectComponent,
+		AboutComponent,
 	],
 	imports: [
 		AngularMaterialModule,
