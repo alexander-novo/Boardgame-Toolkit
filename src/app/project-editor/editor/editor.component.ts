@@ -585,16 +585,14 @@ export class EditorComponent {
 			moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
 			if (event.previousContainer.id == "rightList") {
 				moveItemInArray(this.selectedElement.ref.tags, event.previousIndex, event.currentIndex)
+				this.dirty.emit;
 			}
 		}
 		else {
 			this.assetTags.splice(event.currentIndex, 0, this.project.projectTags[event.previousIndex]);
 			this.selectedElement.ref.tags.splice(event.currentIndex, 0, event.previousIndex);
-			/*transferArrayItem(event.previousContainer.data,
-						event.container.data,
-						event.previousIndex,
-						event.currentIndex);*/
 			console.log("dropping off tag from to assetTags")
+			this.dirty.emit;
 		}
 
 	}
@@ -614,6 +612,7 @@ export class EditorComponent {
 		if (this.project.projectTags.find(tag => tag.name == value)) {
 			this.assetTags.push(this.project.projectTags.find(tag => tag.name == value));
 			this.selectedElement.ref.tags.push(this.project.projectTags.findIndex(tag => tag.name == value));
+			this.dirty.emit;
 		}
 		// Reset the input value
 		if (input) {
@@ -627,12 +626,14 @@ export class EditorComponent {
 
 		if (index >= 0) {
 			this.assetTags.splice(index, 1);
+			this.dirty.emit;
 		}
 	}
 
 	selected(event: MatAutocompleteSelectedEvent): void {
 		this.assetTags.push(this.project.projectTags.find(tag => tag.name == event.option.viewValue));
 		this.selectedElement.ref.tags.push(this.project.projectTags.findIndex(tag => tag.name == event.option.viewValue));
+		this.dirty.emit;
 		this.tagInput.nativeElement.value = '';
 		this.tagCtrl.setValue(null);
 	}
