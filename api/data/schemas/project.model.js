@@ -33,9 +33,7 @@ const ProjectScheme = new Schema({
 			required: true,
 			default: 0,
 		},
-		tags: [{
-			index: {type: Number, required: true},
-		}],
+		tags: [Number],
 		assetCollection: { type: Number, required: false },
 		hiddenFromPlayers: { type: Boolean, required: true, default: false },
 	}],

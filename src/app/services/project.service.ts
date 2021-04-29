@@ -45,6 +45,7 @@ export interface AssetCollection {
 	};
 	angle: number;
 	hiddenFromPlayers: boolean;
+	tags: number[];
 }
 
 export class Project {

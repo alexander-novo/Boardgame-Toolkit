@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, Inject, OnInit, ViewChild } from '@angular/core';
+import {COMMA, ENTER} from '@angular/cdk/keycodes';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA, MAT_DIALOG_SCROLL_STRATEGY_FACTORY } from '@angular/material/dialog';
 import { MatSelectionList } from '@angular/material/list';
 import { ActivatedRoute } from '@angular/router';
@@ -14,7 +15,10 @@ import { FileValidator } from 'ngx-material-file-input';
 import { environment } from 'src/environments/environment';
 import { ThemePalette } from '@angular/material/core';
 import {CdkDragDrop, moveItemInArray, transferArrayItem} from '@angular/cdk/drag-drop';
-
+import {MatAutocompleteSelectedEvent, MatAutocomplete} from '@angular/material/autocomplete';
+import {MatChipInputEvent} from '@angular/material/chips';
+import {Observable} from 'rxjs';
+import {map, startWith} from 'rxjs/operators';
 
 
 
@@ -472,8 +476,9 @@ export class EditorComponent implements OnInit {
 			}
 		});
 
-		dialogRef.afterClosed().subscribe(({ newTag }) => {
-			if (newTag !== undefined) {
+		dialogRef.afterClosed().subscribe(( re ) => {
+			if (re !== undefined) {
+				let {newTag} = re;
 				this.project.projectTags.push(newTag);
 				console.log(this.project.projectTags);
 				console.log("New Tag Uploaded! Check MongoDB");
@@ -523,8 +528,7 @@ export class EditorComponent implements OnInit {
 		drawable.image.on('selected', e => {
 			this.selectedElement = drawable;
 			console.log('selecty');
-			console.log(this.asset.tags);
-			this.assetTags = this.asset.tags.map(idx => this.project.projectTags[idx]);
+			this.assetTags = this.selectedElement.ref.tags.map(idx => this.project.projectTags[idx]);
 			this.rightNav.open();
 		});
 
@@ -547,16 +551,67 @@ export class EditorComponent implements OnInit {
 	tagDrop(event: CdkDragDrop<Tag[]>) {
 		if (event.previousContainer === event.container) {
 			moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
+			if(event.previousContainer.id == "rightList"){
+				moveItemInArray(this.selectedElement.ref.tags, event.previousIndex, event.currentIndex)
+			}
     	}	 
 		else {
-      	transferArrayItem(event.previousContainer.data,
+		this.assetTags.splice(event.currentIndex, 0, this.project.projectTags[event.previousIndex]);
+		this.selectedElement.ref.tags.splice(event.currentIndex, 0 , event.previousIndex);
+      	/*transferArrayItem(event.previousContainer.data,
                         event.container.data,
                         event.previousIndex,
-                        event.currentIndex);
+                        event.currentIndex);*/
 		console.log("dropping off tag from to assetTags")
 		}
 
 	}
+	separatorKeysCodes: number[] = [ENTER, COMMA];
+	tagCtrl = new FormControl();
+	filteredTags: Observable<Tag[]>;
+	@ViewChild('tagInput') tagInput: ElementRef<HTMLInputElement>;
+	@ViewChild('auto') matAutocomplete: MatAutocomplete;
+
+	ChipsAutocompleteExample(){
+		
+		this.filteredTags = this.tagCtrl.valueChanges.pipe(
+		startWith(null as string),
+		map((tag: Tag | null) => tag ? this._filter(tag) : this.assetTags.slice()));  
+
+	}
+	private _filter(value: Tag): Tag[] {
+		const filterValue = value
+	
+		return this.project.projectTags.filter(tag => this.project.projectTags.indexOf(filterValue));
+	}
+	add(event: MatChipInputEvent): void {
+		const input = event.input;
+		const value = event.value;
+	
+		if(this.project.projectTags.find(tag => tag.name == value)){
+			this.assetTags.push(this.project.projectTags.find(tag => tag.name == value));
+		}
+		// Reset the input value
+		if (input) {
+		  input.value = '';
+		}
+	
+		this.tagCtrl.setValue(null);
+	  }
+	remove(tag: Tag): void {
+		const index = this.assetTags.indexOf(tag);
+	
+		if (index >= 0) {
+		  this.assetTags.splice(index, 1);
+		}
+	}
+	
+	selected(event: MatAutocompleteSelectedEvent): void {
+	this.assetTags.push(this.project.projectTags.find(tag => tag.name == event.option.viewValue));
+	this.tagInput.nativeElement.value = '';
+	this.tagCtrl.setValue(null);
+	}
+	
 }
 
 @Component({
