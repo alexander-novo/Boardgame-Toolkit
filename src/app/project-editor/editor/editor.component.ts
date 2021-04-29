@@ -108,7 +108,7 @@ export class EditorComponent {
 		this.dataSource.data = [];
 		this.filteredTags = this.tagCtrl.valueChanges.pipe(
 			startWith(null as string),
-			map((tag: string | null) => tag ? this._filter(tag) : this.assetTags.slice()));
+			map((tag: string | null) => tag ? this._filter(tag) : this.project.projectTags.slice()));
 	}
 
 	onFileDrop(event: Array<File>) {
