@@ -1,6 +1,7 @@
 const express = require('express');
 const ejwt = require('express-jwt');
 const { EJWT_OPTIONS } = require('../jwt');
+
 //instasiate router
 const router = express.Router();
 
@@ -8,6 +9,12 @@ const router = express.Router();
 const ctrLogin = require('../controllers/login.controllers');
 const ctrRegister = require('../controllers/register.controllers');
 const ctrProjects = require('../controllers/projects.controllers');
+const ctrLobbies = require('../controllers/lobbies.controller')
+
+module.exports.routes = router;
+module.exports.configureSocketIo = function (io) {
+	ctrLobbies.configureSocketIo(io);
+};
 
 router
 	.route('/api/login')
@@ -34,6 +41,10 @@ router
 	.get(ejwt(EJWT_OPTIONS), ctrProjects.listProjects);
 
 router
+	.route('/api/projects/public')
+	.get(ctrProjects.listPublicProjects);
+
+router
 	.route('/api/projects/project')
 	.get(ejwt(EJWT_OPTIONS), ctrProjects.getProject)
 	.put(ejwt(EJWT_OPTIONS), ctrProjects.saveProject);
@@ -46,4 +57,7 @@ router
 	.route('/api/projects/collection/thumbnail')
 	.put(ejwt(EJWT_OPTIONS), ctrProjects.collectionThumbnail);
 
-module.exports = router;
+router
+	.route('/api/lobbies')
+	.put(ejwt(EJWT_OPTIONS), ctrLobbies.newLobby)
+	.get(ejwt(EJWT_OPTIONS), ctrLobbies.listLobbies);

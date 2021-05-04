@@ -14,12 +14,38 @@
 						<mat-menu #menu="matMenu" xPosition="before">
 							<button mat-menu-item routerLink="/project/{{project.id}}"
 								routerLinkActive="active">Edit</button>
+							<button mat-menu-item (click)="newLobby(project)">Play</button>
 							<button mat-menu-item>Rename</button>
 							<button mat-menu-item>Remove</button>
 						</mat-menu>
 					</mat-card-title>
 					<mat-card-subtitle>
 						Last Edited {{project.modified | timeago:true}}
+					</mat-card-subtitle>
+				</mat-card-header>
+			</mat-card>
+		</mat-grid-tile>
+	</mat-grid-list>
+</div>
+<div class="grid-container">
+	<h1 class="mat-h1">Public projects</h1>
+	<mat-grid-list cols="5" rowHeight="350px">
+		<mat-grid-tile *ngFor="let project of publicProjects">
+			<mat-card class="dashboard-card" (dblclick)="newLobby(project)">
+				<img mat-card-image [src]="project.thumbnail === undefined ? THUMBNAIL_NOT_FOUND : project.thumbnail"
+					(error)="$event.target.src=THUMBNAIL_NOT_FOUND" alt="thumbnail" class="thumbnail" />
+				<mat-card-header>
+					<mat-card-title>
+						{{project.name}}
+						<button mat-icon-button class="more-button" [matMenuTriggerFor]="menu" aria-label="Toggle menu">
+							<mat-icon>more_vert</mat-icon>
+						</button>
+						<mat-menu #menu="matMenu" xPosition="before">
+							<button mat-menu-item (click)="newLobby(project)">Play</button>
+						</mat-menu>
+					</mat-card-title>
+					<mat-card-subtitle>
+						Created by {{project.owner}}
 					</mat-card-subtitle>
 				</mat-card-header>
 			</mat-card>

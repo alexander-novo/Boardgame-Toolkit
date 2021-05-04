@@ -17,6 +17,8 @@ import { TimeagoModule } from 'ngx-timeago';
 import { ProjectEditorModule } from './project-editor/project-editor.module';
 import { MonacoEditorModule } from '@sentinel-one/ngx-monaco-editor';
 import { LightboxModule } from 'ngx-lightbox';
+import { ChatModule } from '@progress/kendo-angular-conversational-ui';
+
 
 @NgModule({
 	declarations: [
@@ -40,6 +42,7 @@ import { LightboxModule } from 'ngx-lightbox';
 		}),
 		NgxMatColorPickerModule,
 		MonacoEditorModule.forRoot(),
+		ChatModule,
 	],
 	providers: [
 		CookieService,

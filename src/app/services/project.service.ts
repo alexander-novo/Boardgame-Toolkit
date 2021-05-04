@@ -112,6 +112,7 @@ export interface ProjectThumbnail {
 	name: string;
 	modified: Date;
 	thumbnail: string;
+	owner?: string;
 }
 
 @Injectable({
@@ -158,5 +159,9 @@ export class ProjectService {
 
 	addThumbnailToCollection(projectId: string, collectionIndex: number, thumbnailFile: FileInput) {
 		return this.http.put<string>('/api/projects/collection/thumbnail', { id: projectId, collectionIndex, size: thumbnailFile.files[0]?.size, type: thumbnailFile.files[0]?.type });
+	}
+
+	getPublicProjects() {
+		return this.http.get<ProjectThumbnail[]>('/api/projects/public');
 	}
 }

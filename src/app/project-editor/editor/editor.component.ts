@@ -407,11 +407,9 @@ export class EditorComponent {
 	}
 
 	newCollection(defaultSelection: number[]): void {
-		console.log("Got a default selection: ", defaultSelection);
 		let assets = this.project.assets
 			.map((asset, index) => ({ asset, index }))
 			.filter(({ asset }) => asset.assetCollection === undefined);
-		console.log("Assets: ", assets);
 		const dialogRef = this.dialog.open(CollectionDialogComponent, {
 			width: '450px',
 			data: {

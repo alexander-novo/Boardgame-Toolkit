@@ -1,0 +1,27 @@
+<mat-card>
+	<mat-card-header>
+		<mat-card-title>
+			Lobby
+		</mat-card-title>
+		<div class="header-actions">
+			<button mat-icon-button>
+				<mat-icon>search</mat-icon>
+			</button>
+			<button mat-icon-button>
+				<mat-icon>view_module</mat-icon>
+			</button>
+			<button mat-icon-button (click)="close()">
+				<mat-icon>close</mat-icon>
+			</button>
+		</div>
+	</mat-card-header>
+	<mat-card-content>
+		<mat-expansion-panel class="mat-elevation-z0">
+			<mat-list>
+				<mat-list-item *ngFor="let player of players">
+					{{player}}
+				</mat-list-item>
+			</mat-list>
+		</mat-expansion-panel>
+	</mat-card-content>
+</mat-card>

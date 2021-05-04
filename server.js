@@ -4,7 +4,8 @@ const morgan = require('morgan');                // log requests to the console 
 const bodyParser = require('body-parser');       // pull information from HTML POST (express4)
 const cookieParser = require('cookie-parser');
 const path = require('path');
-const routes = require('./api/routes');			// set up routes for our api's
+const { routes, configureSocketIo } = require('./api/routes');			// set up routes for our api's
+const socketIO = require('socket.io');
 
 const app = express();                        	// create our app w/ express
 const port = process.env.PORT || 8888;
@@ -12,7 +13,7 @@ const port = process.env.PORT || 8888;
 app.use((req, res, next) => {
 	console.log(req.method, req.url);
 	next();
-})
+});
 
 // Allow get requests for all files in /dist/boardgame-toolkit (Angular output)
 app.use(morgan('dev'));     // Log request statuses
@@ -34,6 +35,10 @@ app.get('/*', (req, res, next) => {
 	console.error(err);
 });
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
 	console.log(`App running on port ${port}`);
 });
+
+const io = socketIO(server, { path: "/api/play/", serveClient: false });
+
+configureSocketIo(io);

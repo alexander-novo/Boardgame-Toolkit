@@ -13,8 +13,6 @@ if (!S3_BUCKET) {
 	console.log(`Using S3 bucket '${S3_BUCKET}'`);
 }
 
-// aws.config.region = "us-west-1";
-
 // Create new project endpoint
 // Take new project details (such as name), and create a new project.
 // Respond with project id of new project.
@@ -131,6 +129,31 @@ module.exports.listProjects = async (req, res) => {
 
 	// Respond with list of projects
 	res.status(200).json(projects);
+}
+
+module.exports.listPublicProjects = async (req, res) => {
+	let projects;
+
+	// We are using the ejwt middleware, so the auth token has already been verified
+	// (and rejected if necessary) and its payload has been decoded and added to req.user.
+	// For token payload, see /api/login.
+
+	// Populate the found user to replace project IDs with the full project documents.
+	try {
+		projects = await Project.find({ published: true }).populate('owner').exec();
+	} catch (err) {
+		res.status(500).json(err);
+		return;
+	}
+
+	// TODO: this could probably be done better
+	let thumbnails = [];
+	for (var project of projects) {
+		thumbnails.push({ name: project.name, id: project.id, owner: project.owner.username, modified: project.date.modified, thumbnail: project.thumbnail });
+	}
+
+	// Respond with list of projects
+	res.status(200).json(thumbnails);
 }
 
 module.exports.newAssets = async (req, res) => {
