@@ -1,5 +1,6 @@
 import { OverlayRef } from '@angular/cdk/overlay';
 import { Component, Inject, OnInit } from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Socket } from 'socket.io-client';
 import { LobbyService } from 'src/app/services/lobby.service';
 import { LOBBY_SOCKET } from 'src/app/tokens';
@@ -20,7 +21,10 @@ export class LobbyComponent {
 	messages: Message[] = [];
 
 
-	constructor(public lobbyService: LobbyService, private overlayRef: OverlayRef, @Inject(LOBBY_SOCKET) private socket: Socket) {
+	constructor(public lobbyService: LobbyService,
+		private overlayRef: OverlayRef,
+		@Inject(LOBBY_SOCKET) private socket: Socket,
+		private snackbar: MatSnackBar) {
 		socket.on('players in lobby', (players: string[]) => {
 			this.players = players;
 		});
@@ -49,6 +53,9 @@ export class LobbyComponent {
 	}
 
 	copyShareLink(): void {
-		navigator.clipboard.writeText(`${window.location.hostname}/play/${btoa(JSON.stringify(this.lobbyService.currentLobby.roomInfo))}`);
+		navigator.clipboard.writeText(`${window.location.host}/play/${btoa(JSON.stringify(this.lobbyService.currentLobby.roomInfo))}`);
+		this.snackbar.open('Lobby share link copied', null, {
+			duration: 2000
+		});
 	}
 }

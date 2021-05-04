@@ -15,7 +15,7 @@ export class PlayGuard implements CanActivate {
 		let roomInfo = JSON.parse(atob(window.decodeURIComponent(route.params.id)));
 
 		this.lobbyService.joinLobby(roomInfo);
-		return this.router.parseUrl('');
+		return this.router.parseUrl('/play');
 	}
 
 }
