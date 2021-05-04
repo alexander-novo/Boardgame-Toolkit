@@ -29,6 +29,8 @@ export class LobbyService {
 	private lobbyJoinedSource = new Subject<Socket>();
 	lobbyJoined$ = this.lobbyJoinedSource.asObservable();
 
+	currentLobby: Lobby;
+
 	constructor(private http: HttpClient) { }
 
 	newLobby(lobby: { name: string, maxPlayers: number, projectId: string, public: boolean }) {
@@ -48,7 +50,10 @@ export class LobbyService {
 			},
 		});
 
-		console.log(this);
+		socket.on('lobby info', (lobby: Lobby) => {
+			this.currentLobby = lobby;
+		});
+
 		this.lobbyJoinedSource.next(socket);
 	}
 }

@@ -1,6 +1,7 @@
 import { OverlayRef } from '@angular/cdk/overlay';
 import { Component, Inject, OnInit } from '@angular/core';
 import { Socket } from 'socket.io-client';
+import { LobbyService } from 'src/app/services/lobby.service';
 import { LOBBY_SOCKET } from 'src/app/tokens';
 
 export interface Message {
@@ -13,13 +14,13 @@ export interface Message {
 	templateUrl: './lobby.component.html',
 	styleUrls: ['./lobby.component.scss']
 })
-export class LobbyComponent implements OnInit {
+export class LobbyComponent {
 
 	players: string[] = [];
-	messages: Message[] = [{ content: 'test', self: false }, { content: 'second test', self: true }];
+	messages: Message[] = [];
 
 
-	constructor(private overlayRef: OverlayRef, @Inject(LOBBY_SOCKET) private socket: Socket) {
+	constructor(public lobbyService: LobbyService, private overlayRef: OverlayRef, @Inject(LOBBY_SOCKET) private socket: Socket) {
 		socket.on('players in lobby', (players: string[]) => {
 			this.players = players;
 		});
@@ -42,12 +43,12 @@ export class LobbyComponent implements OnInit {
 		this.overlayRef.dispose();
 	}
 
-	ngOnInit(): void {
-	}
-
-	sendMessage(content: string) {
+	sendMessage(content: string): void {
 		this.messages.push({ content, self: true });
 		this.socket.emit('chat', content);
 	}
 
+	copyShareLink(): void {
+		navigator.clipboard.writeText(`${window.location.hostname}/play/${btoa(JSON.stringify(this.lobbyService.currentLobby.roomInfo))}`);
+	}
 }

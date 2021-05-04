@@ -49,6 +49,8 @@ module.exports.configureSocketIo = function (_io) {
 	});
 
 	io.on('connection', async (socket) => {
+		socket.emit('lobby info', socket.data.lobby);
+
 		const roomId = socket.data.lobby.roomInfo.id;
 		socket.to(roomId).emit('new player', socket.data.user.username);
 

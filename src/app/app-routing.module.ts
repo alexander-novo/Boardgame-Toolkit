@@ -9,6 +9,7 @@ import { AboutComponent } from './common-app/about/about.component';
 import { NewProjectComponent } from './common-app/new-project/new-project.component';
 import { WorkspaceComponent } from './project-editor/workspace/workspace.component';
 import { LobbyListComponent } from './common-app/lobby-list/lobby-list.component';
+import { PlayGuard } from './play.guard';
 
 const routes: Routes = [
 	// The home page can only be accessed if you are logged in. If not logged in, LoginGuard redirects to /login
@@ -21,7 +22,7 @@ const routes: Routes = [
 	// The new project page can only be accessed if you are logged in. If not logged in, LoginGuard redirects to /login
 	{ path: 'new-project', component: NewProjectComponent, canActivate: [LoginGuard] },
 	{ path: 'project/:id', component: WorkspaceComponent, canActivate: [LoginGuard], pathMatch: 'prefix' },
-	// { path: 'play/:id', component: PlayComponent, canActivate: [LoginGuard], pathMatch: 'prefix' }
+	{ path: 'play/:id', component: HomeComponent, canActivate: [LoginGuard, PlayGuard], pathMatch: 'prefix' }
 ];
 
 @NgModule({

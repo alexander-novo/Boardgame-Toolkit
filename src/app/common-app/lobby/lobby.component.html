@@ -1,16 +1,14 @@
 <mat-card>
 	<mat-card-header>
 		<mat-card-title>
-			Lobby
+			{{lobbyService.currentLobby?.name}}
 		</mat-card-title>
+		<span style="flex: 1 1 auto"></span>
 		<div class="header-actions">
-			<button mat-icon-button>
-				<mat-icon>search</mat-icon>
+			<button mat-icon-button (click)="copyShareLink()" matTooltip="Copy invite link">
+				<mat-icon>content_copy</mat-icon>
 			</button>
-			<button mat-icon-button>
-				<mat-icon>view_module</mat-icon>
-			</button>
-			<button mat-icon-button (click)="close()">
+			<button mat-icon-button (click)="close()" matTooltip="Leave lobby">
 				<mat-icon>close</mat-icon>
 			</button>
 		</div>
