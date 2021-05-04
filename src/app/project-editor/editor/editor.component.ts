@@ -14,7 +14,7 @@ import { FileValidator } from 'ngx-material-file-input';
 import { ThemePalette } from '@angular/material/core';
 import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { MatAutocompleteSelectedEvent, MatAutocomplete } from '@angular/material/autocomplete';
-import { MatChipInputEvent } from '@angular/material/chips';
+import { MatChip, MatChipInputEvent, MatChipList, MatChipSelectionChange } from '@angular/material/chips';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 
@@ -24,6 +24,7 @@ import { CollectionDialogComponent } from './collection-dialog.component';
 import { AssetUploadDialogComponent } from './asset-upload-dialog.component';
 import { forkJoin } from 'rxjs';
 import { EventEmitter } from '@angular/core';
+import { Color, stringInputToObject } from '@angular-material-components/color-picker';
 
 
 enum DisplayType {
@@ -77,6 +78,9 @@ export class EditorComponent {
 	@ViewChild('rightNav')
 	rightNav: MatSidenav;
 
+	@ViewChild('projectTagList')
+	projectTagList: MatChipList;
+
 	drawables = new Map<{ type: DisplayType, id: string }, Drawable>();
 	treeControl = new NestedTreeControl<Drawable | { type: DisplayType, ref: Asset }>(
 		node => {
@@ -94,6 +98,8 @@ export class EditorComponent {
 	separatorKeysCodes: number[] = [ENTER, COMMA];
 	tagCtrl = new FormControl();
 	filteredTags: Observable<Tag[]>;
+	selectedTag: Tag;
+	tagColorCtr = new FormControl();;
 
 	hasChild = (_: number, node: Drawable | { type: DisplayType, ref: Asset }) =>
 		node.type == DisplayType.Collection &&
@@ -108,8 +114,11 @@ export class EditorComponent {
 		this.dataSource.data = [];
 		this.filteredTags = this.tagCtrl.valueChanges.pipe(
 			startWith(null as string),
-			map((tag: string | null) => tag ? this._filter(tag) : this.project.projectTags.filter(tag => !this.assetTags.some(assetTag => assetTag.name == tag.name)).slice()));
-
+			map((tag: string | null) => tag ? this._filter(tag) : this.project.projectTags.filter(tag => !this.assetTags?.some(assetTag => assetTag.name == tag.name)).slice()));
+		this.tagColorCtr.valueChanges.subscribe((color: Color) => {
+			this.selectedTag.color = color?.toHexString();
+			this.dirty.emit();
+		});
 	}
 
 	onFileDrop(event: Array<File>) {
@@ -392,6 +401,7 @@ export class EditorComponent {
 				return 'collections'
 		}
 	}
+
 	select(item: Drawable | { type: DisplayType, ref: Asset }): void {
 		if ("image" in item) {
 			this.selectedNonDrawable = false;
@@ -462,8 +472,6 @@ export class EditorComponent {
 			if (re !== undefined) {
 				let { newTag } = re;
 				this.project.projectTags.push(newTag);
-				console.log(this.project.projectTags);
-				console.log("New Tag Uploaded! Check MongoDB");
 				this.projectService.saveProject(this.projectId, this.project).subscribe(
 					() => { this.snackBar.open("Project Saved", undefined, { duration: environment.editor.autoSaveBarDuration }); },
 					err => {
@@ -543,8 +551,9 @@ export class EditorComponent {
 	addDrawableEvents(drawable: Drawable): void {
 		drawable.image.on('selected', e => {
 			this.selectedElement = drawable;
-			console.log('selecty');
-			this.assetTags = this.selectedElement.ref.tags.map(idx => this.project.projectTags[idx]);
+			(this.projectTagList.selected as MatChip)?.deselect();
+			this.assetTags = this.selectedElement.ref.tags.map(tag => this.project.projectTags[tag.index]);
+			console.log('Setting asset tags to', this.assetTags);
 
 			if (drawable.type == DisplayType.Asset) {
 				drawable.regionGroups.forEach(
@@ -586,11 +595,24 @@ export class EditorComponent {
 			if (event.previousContainer.id == "rightList") {
 				moveItemInArray(this.selectedElement.ref.tags, event.previousIndex, event.currentIndex)
 				this.dirty.emit();
+			} else if (event.previousContainer.id == 'leftList') {
+				this.project.assets.forEach(asset =>
+					asset.tags.forEach(tag =>
+						tag.index = (tag.index == event.previousIndex ?
+							event.currentIndex :
+							(tag.index == event.currentIndex ? event.previousIndex : tag.index))));
+
+				this.project.assetCollections.forEach(collection =>
+					collection.tags.forEach(tag =>
+						tag.index = (tag.index == event.previousIndex ?
+							event.currentIndex :
+							(tag.index == event.currentIndex ? event.previousIndex : tag.index))));
 			}
 		}
 		else {
-			this.assetTags.splice(event.currentIndex, 0, this.project.projectTags[event.previousIndex]);
-			this.selectedElement.ref.tags.splice(event.currentIndex, 0, event.previousIndex);
+			let tag = this.project.projectTags[event.previousIndex];
+			this.assetTags.splice(event.currentIndex, 0, tag);
+			this.selectedElement.ref.tags.splice(event.currentIndex, 0, { index: event.previousIndex, properties: tag.properties.map(() => null) });
 			console.log("dropping off tag from to assetTags")
 			this.dirty.emit();
 		}
@@ -611,9 +633,11 @@ export class EditorComponent {
 		const input = event.input;
 		const value = event.value;
 
-		if (this.project.projectTags.find(tag => tag.name == value)) {
-			this.assetTags.push(this.project.projectTags.find(tag => tag.name == value));
-			this.selectedElement.ref.tags.push(this.project.projectTags.findIndex(tag => tag.name == value));
+		let index = this.project.projectTags.findIndex(tag => tag.name == value);
+		if (index > -1) {
+			let tag = this.project.projectTags[index];
+			this.assetTags.push(tag);
+			this.selectedElement.ref.tags.push({ index, properties: tag.properties.map(() => null) });
 			this.dirty.emit();
 		}
 		// Reset the input value
@@ -634,9 +658,34 @@ export class EditorComponent {
 		}
 	}
 
+	selectTag(tag: Tag, event: MatChipSelectionChange) {
+
+		if (event.selected) {
+			this.selectedTag = tag;
+			this.canvas.discardActiveObject();
+			this.rightNav.open();
+			this.canvas.requestRenderAll();
+
+			if (tag.color) {
+				let temp = tag.color ? stringInputToObject(tag.color) : null;
+				this.tagColorCtr.setValue(new Color(temp.r, temp.g, temp.b), { emitEvent: false });
+			} else {
+				this.tagColorCtr.setValue(null, { emitEvent: false });
+			}
+		} else if (this.selectedTag == tag) {
+			this.selectedTag = null;
+
+			if (!this.selectedElement)
+				this.rightNav.close();
+		}
+
+	}
+
 	selected(event: MatAutocompleteSelectedEvent): void {
-		this.assetTags.push(this.project.projectTags.find(tag => tag.name == event.option.viewValue));
-		this.selectedElement.ref.tags.push(this.project.projectTags.findIndex(tag => tag.name == event.option.viewValue));
+		let index = this.project.projectTags.findIndex(tag => tag.name == event.option.viewValue);
+		let tag = this.project.projectTags[index];
+		this.assetTags.push(tag);
+		this.selectedElement.ref.tags.push({ index, properties: tag.properties.map(() => null) });
 		this.dirty.emit();
 		this.tagInput.nativeElement.value = '';
 		this.tagCtrl.setValue(null);
@@ -718,6 +767,15 @@ export class EditorComponent {
 		this.canvas.requestRenderAll();
 	}
 
+	newProperty(): void {
+		this.selectedTag.properties.push({
+			name: `Property ${this.selectedTag.properties.length + 1}`,
+			dataType: 'number',
+		});
+		this.project.assets.forEach(asset => asset.tags.find(assetTag => this.project.projectTags[assetTag.index] == this.selectedTag)?.properties.push(null));
+		this.dirty.emit();
+	}
+
 };
 
 function UniqueTagNameValidator(tags: Tag[]): ValidatorFn {
@@ -765,7 +823,8 @@ export class TagDialogComponent {
 		this.dialogRef.close({
 			newTag: {
 				name: this.newTagForm.get("name").value,
-				color: this.colorCtr.value?.toHexString()
+				color: this.colorCtr.value?.toHexString(),
+				properties: [],
 			},
 		});
 	}

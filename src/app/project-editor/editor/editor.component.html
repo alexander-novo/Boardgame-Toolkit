@@ -56,9 +56,12 @@
 					<mat-panel-title>Tags</mat-panel-title>
 				</mat-expansion-panel-header>
 
-				<mat-chip-list [multiple]="false" cdkDropList id="leftList" [cdkDropListData]="project.projectTags"
-					(cdkDropListDropped)="tagDrop($event)" [cdkDropListConnectedTo]="['rightList']">
-					<mat-chip [style.background-color]="tag.color" cdkDrag *ngFor="let tag of project.projectTags">
+				<mat-chip-list #projectTagList cdkDropList id="leftList" [cdkDropListData]="project.projectTags"
+					(cdkDropListDropped)="tagDrop($event)" [cdkDropListConnectedTo]="['rightList']" selectable
+					multiple="false">
+					<mat-chip [style.background-color]="tag.color" cdkDrag *ngFor="let tag of project.projectTags"
+						selectable (selectionChange)="selectTag(tag, $event)" #chip="matChip"
+						(click)="chip.toggleSelected(true)">
 						{{tag.name}}
 					</mat-chip>
 				</mat-chip-list>
@@ -84,6 +87,56 @@
 	</mat-sidenav>
 	<mat-sidenav #rightNav mode="over" position=end disableClose>
 		<mat-accordion multi>
+			<!-- Project Tag editor -->
+			<mat-expansion-panel expanded *ngIf="!!selectedTag">
+				<mat-expansion-panel-header>
+					<mat-panel-title style="white-space: nowrap;">
+						Tag Info
+					</mat-panel-title>
+					<mat-panel-description class="long-text">
+						<mat-chip [style.background-color]="selectedTag.color">{{selectedTag.name}}</mat-chip>
+					</mat-panel-description>
+				</mat-expansion-panel-header>
+				<mat-form-field>
+					<mat-label>Name</mat-label>
+					<input matInput [(ngModel)]="selectedTag.name" (ngModelChange)="dirty.emit();">
+				</mat-form-field>
+				<mat-form-field>
+					<mat-label>Color</mat-label>
+					<input matInput [ngxMatColorPicker]="tagPicker" [formControl]="tagColorCtr">
+					<ngx-mat-color-toggle matSuffix [for]="tagPicker">
+					</ngx-mat-color-toggle>
+					<ngx-mat-color-picker #tagPicker color="primary">
+					</ngx-mat-color-picker>
+				</mat-form-field>
+			</mat-expansion-panel>
+			<!-- Tag property editor -->
+			<mat-expansion-panel expanded *ngIf="!!selectedTag">
+				<mat-expansion-panel-header>
+					<mat-panel-title style="white-space: nowrap;">
+						Properties
+					</mat-panel-title>
+				</mat-expansion-panel-header>
+				<div *ngFor="let property of selectedTag.properties" style="display: flex;">
+					<mat-form-field style="width: 60%;">
+						<mat-label>Property Name</mat-label>
+						<input matInput [(ngModel)]="property.name" (ngModelChange)="dirty.emit();">
+					</mat-form-field>
+					<span style="flex: 1 1 auto"></span>
+					<mat-form-field style="width: 33%;">
+						<mat-label>Type</mat-label>
+						<mat-select [(value)]="property.dataType" (selectionChange)="dirty.emit()">
+							<mat-option value="number">Number</mat-option>
+							<mat-option value="boolean">True/False</mat-option>
+							<mat-option value="string">Text</mat-option>
+						</mat-select>
+					</mat-form-field>
+				</div>
+				<button class="list-action-button" mat-raised-button color="primary" (click)="newProperty()">
+					New Property
+				</button>
+			</mat-expansion-panel>
+			<!-- Asset/Collection editor -->
 			<mat-expansion-panel expanded *ngIf="!!selectedElement">
 				<mat-expansion-panel-header>
 					<mat-panel-title style="white-space: nowrap;">
@@ -118,6 +171,7 @@
 					Hide from players
 				</mat-slide-toggle>
 			</mat-expansion-panel>
+			<!-- Asset/Collection Tag Editor -->
 			<mat-expansion-panel expanded *ngIf="!!selectedElement">
 				<mat-expansion-panel-header>
 					<mat-panel-title>Tags</mat-panel-title>
@@ -125,11 +179,12 @@
 				<mat-form-field style="width:100%;">
 					<mat-chip-list #chipList cdkDropList id="rightList" [cdkDropListConnectedTo]="['leftList']"
 						(cdkDropListDropped)="tagDrop($event)" [cdkDropListData]="assetTags">
-						<input placeholder="Tag Search" #tagInput [formControl]="tagCtrl" [matAutocomplete]="auto"
+						<input placeholder="New Tag" #tagInput [formControl]="tagCtrl" [matAutocomplete]="auto"
 							[matChipInputFor]="chipList" [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
 							(matChipInputTokenEnd)="add($event)">
-						<mat-chip [style.background-color]="tag.color" cdkDrag [removable] (removed)="remove(tag)"
-							*ngFor="let tag of assetTags">{{tag.name}}
+						<mat-chip [style.background-color]="tag.color" cdkDrag removable (removed)="remove(tag)"
+							*ngFor="let tag of assetTags">
+							{{tag.name}}
 							<mat-icon matChipRemove>cancel</mat-icon>
 						</mat-chip>
 					</mat-chip-list>
@@ -139,7 +194,30 @@
 						</mat-option>
 					</mat-autocomplete>
 				</mat-form-field>
+				<h2 matheader>Properties</h2>
+				<mat-list>
+					<div *ngFor="let assetTag of selectedElement.ref.tags">
+						<div *ngIf="project.projectTags[assetTag.index] as tag">
+							<div *ngIf="tag.properties.length > 0">
+								<h3 matSubheader>{{tag.name}}</h3>
+								<div *ngFor="let property of tag.properties; index as propertyIndex">
+									<mat-form-field *ngIf="property.dataType != 'boolean'">
+										<mat-label>{{property.name}}</mat-label>
+										<input matInput [(ngModel)]="assetTag.properties[propertyIndex]"
+											(ngModelChange)="dirty.emit()"
+											[type]="property.dataType == 'number' ? 'number' : 'text'">
+									</mat-form-field>
+									<mat-slide-toggle [(ngModel)]="assetTag.properties[propertyIndex]"
+										(ngModelChange)="dirty.emit()" *ngIf="property.dataType == 'boolean'">
+										{{property.name}}
+									</mat-slide-toggle>
+								</div>
+							</div>
+						</div>
+					</div>
+				</mat-list>
 			</mat-expansion-panel>
+			<!-- Asset Region Editor -->
 			<mat-expansion-panel expanded *ngIf="!!selectedElement && selectedElement.type == eDisplayType.Asset">
 				<mat-expansion-panel-header>
 					<mat-panel-title>

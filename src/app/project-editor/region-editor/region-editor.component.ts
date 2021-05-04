@@ -37,7 +37,6 @@ export class RegionEditorComponent {
 		);
 		this.colorCtr.valueChanges.subscribe((color: Color) => {
 			this.group.color = color.toHexString();
-			console.log('Changed color to ', this.group.color);
 			this.drawables.forEach(drawable => {
 				drawable.img.set({
 					fill: this.group.color + environment.editor.regions.regionFillTransparency,

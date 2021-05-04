@@ -57,15 +57,11 @@ export interface Asset {
 	angle: number;
 	assetCollection?: number;
 	hiddenFromPlayers: boolean;
-	tags: number[];
+	tags: {
+		index: number,
+		properties: (number | boolean | string)[],
+	}[];
 	regionGroups: RegionGroup[];
-}
-
-export interface Tag {
-	_id: string;
-	name: string;
-	selected: true;
-	color?: string;
 }
 
 export interface AssetCollection {
@@ -83,7 +79,20 @@ export interface AssetCollection {
 	};
 	angle: number;
 	hiddenFromPlayers: boolean;
-	tags: number[];
+	tags: {
+		index: number,
+		properties: (number | boolean | string)[],
+	}[];
+}
+
+export interface Tag {
+	_id: string;
+	name: string;
+	color?: string;
+	properties: {
+		name: string;
+		dataType: 'number' | 'boolean' | 'string' | 'tag';
+	}[];
 }
 
 export class Project {

@@ -1,6 +1,4 @@
-const { analyzeAndValidateNgModules } = require("@angular/compiler");
-const { stringify } = require("@angular/compiler/src/util");
-const { Schema, model } = require("mongoose");
+const { Schema, model, Mixed } = require("mongoose");
 
 const colorValidator = (v) => (/^#([0-9a-f]{3}){1,2}$/i).test(v)
 
@@ -73,7 +71,10 @@ const AssetSchema = new Schema({
 	},
 	assetCollection: { type: Number, required: false },
 	hiddenFromPlayers: { type: Boolean, required: true, default: false },
-	tags: [Number],
+	tags: [{
+		index: { type: Number, required: true },
+		properties: [Mixed],
+	}],
 	regionGroups: [RegionGroupSchema],
 });
 
@@ -100,7 +101,10 @@ const AssetCollectionSchema = new Schema({
 		required: true,
 		default: 0,
 	},
-	tags: [Number],
+	tags: [{
+		index: { type: Number, required: true },
+		properties: [Mixed],
+	}],
 	hiddenFromPlayers: { type: Boolean, required: true, default: false },
 });
 
@@ -118,6 +122,10 @@ const ProjectSchema = new Schema({
 	projectTags: [{
 		name: { type: String, required: true },
 		color: { type: String, required: false, validator: [colorValidator, 'Invalid Color'] },
+		properties: [{
+			name: { type: String, required: true },
+			dataType: { type: String, required: true, enum: ['number', 'boolean', 'string', 'tag'] }
+		}],
 	}],
 	camera: {
 		x: { type: Number, required: true, default: 0 },
