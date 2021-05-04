@@ -16,12 +16,39 @@
 		</div>
 	</mat-card-header>
 	<mat-card-content>
-		<mat-expansion-panel class="mat-elevation-z0">
-			<mat-list>
-				<mat-list-item *ngFor="let player of players">
-					{{player}}
-				</mat-list-item>
-			</mat-list>
-		</mat-expansion-panel>
+		<div class="chat-box">
+			<div class="main">
+				<div class="contacts-title">Players</div>
+				<ul>
+					<li *ngFor="let player of players">
+						<div class="image-container">
+							<!-- <img [src]="contact.avatar" width="36px" height="37px" /> -->
+							<span class="circle" [ngClass]="'on'"></span>
+						</div>
+						<div class="contacts-info">
+							<span class="status-title">{{player}}</span>
+							<span class="status-text">ready to play</span>
+						</div>
+					</li>
+				</ul>
+			</div>
+			<div class="main2">
+				<div class="user-info">Chat</div>
+				<div *ngIf="messages && messages[0]" class="messages-container" #scrollMe>
+					<ul>
+						<li *ngFor="let message of messages"
+							[style.flex-direction]="message.self ? 'row-reverse' : 'row'">
+							<!-- <img [src]="message.sender.avatar" width="36px" height="37px" /> -->
+							<span [ngClass]="message.self ? 'speech-bubble-own' : 'speech-bubble'
+			          ">{{ message.content }}</span>
+						</li>
+					</ul>
+				</div>
+				<div class="input-container">
+					<input placeholder="Type something" #messageInput
+						(keydown.enter)="sendMessage(messageInput.value); messageInput.value = ''" />
+				</div>
+			</div>
+		</div>
 	</mat-card-content>
 </mat-card>

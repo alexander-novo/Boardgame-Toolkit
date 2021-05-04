@@ -1,16 +1,9 @@
-import { AfterViewInit, Component, Inject, OnInit, ViewChild } from '@angular/core';
-import { FormGroup, FormControl, Validators } from '@angular/forms';
-import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { MatSelectionList } from '@angular/material/list';
+import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
-import { NgxDropzoneChangeEvent } from 'ngx-dropzone';
-import { RejectedFile } from 'ngx-dropzone/lib/ngx-dropzone.service';
 import { Lobby, LobbyService } from 'src/app/services/lobby.service';
-import { AssetCollection } from 'src/app/services/project.service';
-import { environment } from 'src/environments/environment';
 
 @Component({
 	selector: 'app-lobby-list',
@@ -18,8 +11,8 @@ import { environment } from 'src/environments/environment';
 	styleUrls: ['./lobby-list.component.scss']
 })
 export class LobbyListComponent implements AfterViewInit, OnInit {
-	displayedColumns: string[] = ['owner', 'name', 'gameName', 'players'];
-	dataSource = new MatTableDataSource<Lobby>(TEST_DATA);
+	displayedColumns: string[] = ['owner', 'name', 'gameName', 'players', 'select'];
+	dataSource = new MatTableDataSource<Lobby>([]);
 
 	@ViewChild(MatPaginator) paginator: MatPaginator;
 	@ViewChild(MatSort) sort: MatSort;
@@ -27,6 +20,10 @@ export class LobbyListComponent implements AfterViewInit, OnInit {
 	constructor(private dialog: MatDialog, private lobbyService: LobbyService) { }
 
 	ngOnInit() {
+		this.refreshLobbyData();
+	}
+
+	refreshLobbyData() {
 		this.lobbyService.listLobbies().subscribe(
 			lobbies => {
 				console.log("Got lobbies:", lobbies);
@@ -49,8 +46,10 @@ export class LobbyListComponent implements AfterViewInit, OnInit {
 		}
 	}
 
-
-
+	joinLobby(lobby: Lobby) {
+		this.lobbyService.joinLobby(lobby.roomInfo);
+		this.refreshLobbyData();
+	}
 }
 
 const TEST_DATA: Lobby[] = [

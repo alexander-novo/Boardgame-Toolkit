@@ -57,8 +57,11 @@ module.exports.configureSocketIo = function (_io) {
 
 		socket.on('disconnecting', () => {
 			socket.in(roomId).emit('player left', socket.data.user.username);
-			// TODO - do this better. Pointer to lobby not preserved
 			socket.data.lobby.players--;
+		});
+
+		socket.on('chat', content => {
+			socket.in(roomId).emit('chat', content);
 		});
 	});
 };
@@ -94,7 +97,7 @@ module.exports.newLobby = async (req, res) => {
 			name: project.name,
 		},
 		maxPlayers: req.body.maxPlayers,
-		players: 1,
+		players: 0,
 		name: req.body.name,
 		mode: 'lobby',
 	};

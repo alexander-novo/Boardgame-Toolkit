@@ -26,7 +26,6 @@
 		"@angular/platform-browser-dynamic": "~11.0.1",
 		"@angular/router": "~11.0.1",
 		"@auth0/angular-jwt": "^5.0.2",
-		"@progress/kendo-angular-conversational-ui": "^3.0.0",
 		"@sentinel-one/ngx-monaco-editor": "^9.0.1",
 		"aws-sdk": "^2.865.0",
 		"axios": "^0.21.1",
@@ -54,8 +53,7 @@
 		"socket.io-client": "^4.0.1",
 		"tslib": "^2.0.0",
 		"validator": "^13.5.1",
-		"zone.js": "~0.10.2",
-		"@angular/localize": "~11.0.1"
+		"zone.js": "~0.10.2"
 	},
 	"devDependencies": {
 		"@angular-devkit/build-angular": "~0.1100.2",
