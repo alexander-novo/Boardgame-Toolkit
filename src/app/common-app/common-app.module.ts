@@ -11,6 +11,7 @@ import { LayoutModule } from '@angular/cdk/layout';
 import { RecaptchaModule, RecaptchaFormsModule } from 'ng-recaptcha';
 import { MaterialFileInputModule } from 'ngx-material-file-input';
 import { TimeagoModule } from 'ngx-timeago';
+import { LightboxModule } from 'ngx-lightbox';
 
 import { AngularMaterialModule } from '../angular-material.module';
 import { AppRoutingModule } from '../app-routing.module';
@@ -55,6 +56,7 @@ import { LobbyComponent } from './lobby/lobby.component';
 		MatIconModule,
 		MatButtonModule,
 		LayoutModule,
+		LightboxModule,
 	]
 })
 export class CommonAppModule { }
